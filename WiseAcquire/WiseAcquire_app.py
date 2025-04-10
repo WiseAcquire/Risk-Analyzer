@@ -209,24 +209,24 @@ This tool uses LLM-based Retrieval-Augmented Generation (RAG) to assess risks in
 
 st.markdown("### 📂 Upload Your Documents")
 st.markdown("Drag & drop your files below. Supported: 📄 CSV, 📑 PDF, 📝 DOCX")
-query = st.text_input("What do you want to know?", "What are the risks associated with this procurement document?")
 
 col1, col2, col3 = st.columns(3)
 with col1:
     EXAMPLES_PATH = Path(__file__).resolve().parent.parent / "example_files"
     with open(EXAMPLES_PATH / "dataset1.csv", "rb") as f:
-        st.download_button("📄 History Document", f, file_name="dataset1.csv", help="Historical doc example")
+        st.download_button("📄 Mock History Document", f, file_name="dataset1.csv", help="Historical doc example")
 with col2:
     with open(EXAMPLES_PATH / "risks.csv", "rb") as f:
-        st.download_button("📑 Risk Register", f, file_name="risks.csv", help="Risk types to reference")
+        st.download_button("📑 Mock Risk Register", f, file_name="risks.csv", help="Risk types to reference")
 with col3:
     with open(EXAMPLES_PATH / "dataset_no_risks.csv", "rb") as f:
-        st.download_button("📝 Target Procurement File", f, file_name="dataset_no_risks.csv", help="Target doc example")
+        st.download_button("📝 Mock Target Procurement File", f, file_name="dataset_no_risks.csv", help="Target doc example")
     doc_labels = {
         "History Document": [],
         "Risk Register": None,
         "Target Procurement File": None,
     }
+query = st.text_input("What do you want to know?", "What are the risks associated with this procurement document?")
     
 uploaded_docs = {}
 
