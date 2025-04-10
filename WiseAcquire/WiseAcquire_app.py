@@ -340,8 +340,9 @@ if st.button("Run Analysis"):
                     risk_section = result
                     mitigation_section = ""
 
-                with st.expander("📋 Risk Explorer Panel", expanded=True):
+                    st.markdown("### 📋 Risk Explorer Panel")
                     st.markdown("Filter and review each risk found:")
+                    
                 
                     # Simulate parsed risks
                     parsed_risks = [
