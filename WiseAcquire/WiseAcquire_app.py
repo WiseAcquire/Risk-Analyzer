@@ -222,42 +222,42 @@ This tool uses LLM-based Retrieval-Augmented Generation (RAG) to assess risks in
     with col3:
         with open(EXAMPLES_PATH / "dataset_no_risks.csv", "rb") as f:
             st.markdown("📝 Target Procurement File", f, file_name="dataset_no_risks.csv", help="Target doc example")
-    doc_labels = {
-        "History Document": [],
-        "Risk Register": None,
-        "Target Procurement File": None,
-    }
-    
-    uploaded_docs = {}
-    
-    for label in doc_labels:
-        st.markdown(f"**{label}:**")
-        uploaded_file = st.file_uploader(
-            f"Upload your {label}", 
-            type=["csv", "pdf", "docx"], 
-            key=label,
-            help={
-                "History Document": "📚 Upload past procurement records. These help the model understand project patterns.",
-                "Risk Register": "⚠️ Upload a file listing types of risks and descriptions (e.g., Risk Doc.csv).",
-                "Target Procurement File": "🎯 Upload the project document you want to analyze (e.g., Target.csv)."
-            }.get(label, "")
-        )
+        doc_labels = {
+            "History Document": [],
+            "Risk Register": None,
+            "Target Procurement File": None,
+        }
         
-        if uploaded_file:
-            st.success(f"✅ Uploaded: {uploaded_file.name}")
-            file_ext = uploaded_file.name.split(".")[-1]
-            bytes_data = uploaded_file.getvalue()
+        uploaded_docs = {}
+        
+        for label in doc_labels:
+            st.markdown(f"**{label}:**")
+            uploaded_file = st.file_uploader(
+                f"Upload your {label}", 
+                type=["csv", "pdf", "docx"], 
+                key=label,
+                help={
+                    "History Document": "📚 Upload past procurement records. These help the model understand project patterns.",
+                    "Risk Register": "⚠️ Upload a file listing types of risks and descriptions (e.g., Risk Doc.csv).",
+                    "Target Procurement File": "🎯 Upload the project document you want to analyze (e.g., Target.csv)."
+                }.get(label, "")
+            )
             
-            st.text(f"🧪 Uploaded {label}: {uploaded_file.name}, size: {len(bytes_data)} bytes")
-            preview_file(io.BytesIO(bytes_data), file_ext, name=uploaded_file.name)
-    
-            # Save uploaded files appropriately
-            if label == "History Document":
-                doc_labels["History Document"].append((uploaded_file.name, bytes_data))
-            else:
-                doc_labels[label] = (uploaded_file.name, bytes_data)
-            
-            uploaded_docs[label] = uploaded_file
+            if uploaded_file:
+                st.success(f"✅ Uploaded: {uploaded_file.name}")
+                file_ext = uploaded_file.name.split(".")[-1]
+                bytes_data = uploaded_file.getvalue()
+                
+                st.text(f"🧪 Uploaded {label}: {uploaded_file.name}, size: {len(bytes_data)} bytes")
+                preview_file(io.BytesIO(bytes_data), file_ext, name=uploaded_file.name)
+        
+                # Save uploaded files appropriately
+                if label == "History Document":
+                    doc_labels["History Document"].append((uploaded_file.name, bytes_data))
+                else:
+                    doc_labels[label] = (uploaded_file.name, bytes_data)
+                
+                uploaded_docs[label] = uploaded_file
 
 if st.button("Run Analysis"):
     if not IFI_API_KEY:
