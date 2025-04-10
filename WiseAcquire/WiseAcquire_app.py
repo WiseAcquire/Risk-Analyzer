@@ -333,7 +333,7 @@ if st.button("Run Analysis"):
             else:
                 result = rag.generate_risks_analysis_rag()
                 st.success("✅ Analysis complete!")
-              st.markdown("### 📊 Risk Summary Panel")
+                st.markdown("### 📊 Risk Summary Panel")
 
               # Simulated values – replace with parsed values later
               col1, col2, col3 = st.columns(3)
