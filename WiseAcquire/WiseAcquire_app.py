@@ -262,6 +262,7 @@ historical_files = uploaded_docs.get("History Document", [])
 risks_files = uploaded_docs.get("Risk Register", [])
 target_files = uploaded_docs.get("Target Procurement File", [])
 
+# === Run Risk Analysis and Store in Session State ===
 if st.button("Run Analysis"):
     if not IFI_API_KEY:
         st.error("Missing API key!")
@@ -274,22 +275,15 @@ if st.button("Run Analysis"):
             (base_dir / "risks_document").mkdir(exist_ok=True)
             (base_dir / "target_document").mkdir(exist_ok=True)
 
-            # Save historical files
-            for fname, fbytes in historical_files:
-                with open(base_dir / "historical_documents" / fname, "wb") as out:
-                    out.write(fbytes)
+            for folder_name, file_list in [
+                ("historical_documents", historical_files),
+                ("risks_document", risks_files),
+                ("target_document", target_files),
+            ]:
+                for fname, fbytes in file_list:
+                    with open(base_dir / folder_name / fname, "wb") as out:
+                        out.write(fbytes)
 
-            # Save risk register files
-            for fname, fbytes in risks_files:
-                with open(base_dir / "risks_document" / fname, "wb") as out:
-                    out.write(fbytes)
-
-            # Save target procurement files
-            for fname, fbytes in target_files:
-                with open(base_dir / "target_document" / fname, "wb") as out:
-                    out.write(fbytes)
-
-            # Run RAG analysis
             rag = RAGProcurementRisksAnalysis(
                 api_key=IFI_API_KEY,
                 query=query,
@@ -299,80 +293,60 @@ if st.button("Run Analysis"):
                 risk_analysis_output_path=base_dir / "outputs"
             )
 
-            st.text(f"📄 Loaded {len(rag.risks_document)} risks doc(s)")
-            if rag.risks_document:
-                st.text(f"🔎 Risks doc preview:\n{rag.risks_document[0].page_content[:300]}")
+            st.session_state["risk_result"] = rag.generate_risks_analysis_rag()
 
-            if not rag.historical_documents:
-                st.error("❌ Could not load any content from historical documents.")
-            elif not rag.risks_document:
-                st.error("❌ Could not load any content from the risks document.")
-            elif not rag.target_document:
-                st.error("❌ Could not load any content from the target document.")
-            else:
-                result = rag.generate_risks_analysis_rag()
-                st.success("✅ Analysis complete!")
-                st.markdown("### 📊 Risk Summary Panel")
+# === Render Analysis Results If Present ===
+if "risk_result" in st.session_state:
+    result = st.session_state["risk_result"]
+    st.success("✅ Analysis complete!")
+    st.markdown("### 📊 Risk Summary Panel")
 
-                # Simulated values – replace with parsed values later
-                col1, col2, col3 = st.columns(3)
-                col1.metric("🟥 High Risks", "2")
-                col2.metric("🟧 Medium Risks", "3")
-                col3.metric("🟩 Low Risks", "4")
-                
-                st.markdown("**📈 Budget Variance:** $700,000 Overrun")
-                st.markdown("**🕒 Schedule Variance:** +15 days late")
-                
-                # Visual risk score (simulate with bar)
-                st.progress(0.68)
-                st.markdown("**Risk Score:** 68/100 — Moderate")
-                
+    col1, col2, col3 = st.columns(3)
+    col1.metric("🟥 High Risks", "2")
+    col2.metric("🟧 Medium Risks", "3")
+    col3.metric("🟩 Low Risks", "4")
 
-                st.markdown("### 📤 Export & Share")
-                with st.spinner("Generating full report..."):
-                    st.download_button("📄 Download as PDF", result, file_name="risk_analysis.pdf")
-                    st.download_button("📊 Export to Excel", result, file_name="risk_analysis.xlsx")
-                    st.download_button("💾 Export as JSON", result, file_name="risk_analysis.json")
+    st.markdown("**📈 Budget Variance:** $700,000 Overrun")
+    st.markdown("**🕒 Schedule Variance:** +15 days late")
+    st.progress(0.68)
+    st.markdown("**Risk Score:** 68/100 — Moderate")
 
-                if "Mitigation Plan:" in result:
-                    risk_section, mitigation_section = result.split("Mitigation Plan:", 1)
-                else:
-                    risk_section = result
-                    mitigation_section = ""
+    st.markdown("### 📤 Export & Share")
+    st.download_button("📄 Download as PDF", result, file_name="risk_analysis.pdf")
+    st.download_button("📊 Export to Excel", result, file_name="risk_analysis.xlsx")
+    st.download_button("💾 Export as JSON", result, file_name="risk_analysis.json")
 
-                    st.markdown("### 📋 Risk Explorer Panel")
-                    st.markdown("Filter and review each risk found:")
-                    
-                
-                    # Simulate parsed risks
-                    parsed_risks = [
-                        {"title": "Phase 1 Delay", "type": "📅 Schedule", "severity": "High", "confidence": 87, "key_data": "15 days late", "mitigation": "Reschedule milestone with buffer"},
-                        {"title": "Supplier Budget Overrun", "type": "💰 Cost", "severity": "Medium", "confidence": 75, "key_data": "$200K over", "mitigation": "Re-negotiate supplier terms"},
-                    ]
-                
-                    for i, risk in enumerate(parsed_risks):
-                        with st.expander(f"{risk['type']} **{risk['title']}** — {risk['severity']} Risk ({risk['confidence']}%)"):
-                            st.markdown(f"**Key Insight:** {risk['key_data']}")
-                            st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
-                st.markdown("### ⏱️ Timeline View")
-                st.markdown("Visualize risk timing across project phases")
-                
-                import plotly.express as px
-                import pandas as pd
-                
-                timeline_data = pd.DataFrame([
-                    dict(Task="Planning", Start='2024-01-01', Finish='2024-01-15', Risk="None"),
-                    dict(Task="Phase 1", Start='2024-01-16', Finish='2024-02-15', Risk="Delay"),
-                    dict(Task="Phase 2", Start='2024-02-16', Finish='2024-03-15', Risk="Cost Overrun"),
-                ])
-                
-                fig = px.timeline(timeline_data, x_start="Start", x_end="Finish", y="Task", color="Risk")
-                st.plotly_chart(fig, use_container_width=True)
+    if "Mitigation Plan:" in result:
+        risk_section, mitigation_section = result.split("Mitigation Plan:", 1)
+    else:
+        risk_section = result
+        mitigation_section = ""
 
+    # Risk Panel
+    st.markdown("### 📋 Risk Explorer Panel")
+    parsed_risks = [
+        {"title": "Phase 1 Delay", "type": "📅 Schedule", "severity": "High", "confidence": 87, "key_data": "15 days late", "mitigation": "Reschedule milestone with buffer"},
+        {"title": "Supplier Budget Overrun", "type": "💰 Cost", "severity": "Medium", "confidence": 75, "key_data": "$200K over", "mitigation": "Re-negotiate supplier terms"},
+    ]
+    for i, risk in enumerate(parsed_risks):
+        with st.expander(f"{risk['type']} **{risk['title']}** — {risk['severity']} Risk ({risk['confidence']}%)"):
+            st.markdown(f"**Key Insight:** {risk['key_data']}")
+            st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
 
+    # Timeline
+    st.markdown("### ⏱️ Timeline View")
+    import plotly.express as px
+    timeline_data = pd.DataFrame([
+        dict(Task="Planning", Start='2024-01-01', Finish='2024-01-15', Risk="None"),
+        dict(Task="Phase 1", Start='2024-01-16', Finish='2024-02-15', Risk="Delay"),
+        dict(Task="Phase 2", Start='2024-02-16', Finish='2024-03-15', Risk="Cost Overrun"),
+    ])
+    fig = px.timeline(timeline_data, x_start="Start", x_end="Finish", y="Task", color="Risk")
+    st.plotly_chart(fig, use_container_width=True)
 
-                if mitigation_section.strip():
-                    with st.expander("🛡️ Mitigation Panel", expanded=True):
-                        mitigation_items = mitigation_section.strip().split("\n")
-                        for i, m in enumerate(mitigation_items):
-                            st.checkbox(f"🛠 {m.strip()}", key=f"mitigation_{i}")
+    # Mitigation Checklist Panel
+    if mitigation_section.strip():
+        st.markdown("### 🛡️ Mitigation Panel")
+        mitigation_items = [m.strip() for m in mitigation_section.strip().split("\n") if m.strip()]
+        for i, m in enumerate(mitigation_items):
+            st.checkbox(f"🛠 {m}", key=f"mitigation_{i}")
