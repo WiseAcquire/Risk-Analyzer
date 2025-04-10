@@ -374,5 +374,5 @@ if st.button("Run Analysis"):
                 if mitigation_section.strip():
                     with st.expander("🛡️ Mitigation Panel", expanded=True):
                         mitigation_items = mitigation_section.strip().split("\n")
-                        for m in mitigation_items:
-                            st.checkbox(f"🛠 {m.strip()}")
+                        for i, m in enumerate(mitigation_items):
+                            st.checkbox(f"🛠 {m.strip()}", key=f"mitigation_{i}")
