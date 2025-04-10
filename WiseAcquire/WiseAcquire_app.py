@@ -203,9 +203,9 @@ def preview_file(file, file_type, name="Uploaded file"):
         st.text_area("DOCX Preview", text[:2000], height=200)
 
 # STEP 6: Streamlit UI Setup
-st.set_page_config(page_title="Procurement Risk Analyzer", layout="centered")
+st.set_page_config(page_title="WiseAcquire's Risk Analyzer", layout="centered")
 
-st.title("📄 Procurement Risk Analyzer")
+st.title("WiseAcquire's Risk Analyzer")
 
 st.sidebar.title("ℹ️ About")
 st.sidebar.info('''
