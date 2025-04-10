@@ -207,84 +207,57 @@ This tool uses LLM-based Retrieval-Augmented Generation (RAG) to assess risks in
 - Securely runs in your environment
 ''')
 
-with st.expander("📁 Download Example Templates", expanded=True):
+    st.markdown("### 📂 Upload Your Documents")
+    st.markdown("Drag & drop your files below. Supported: 📄 CSV, 📑 PDF, 📝 DOCX")
+    query = st.text_input("What do you want to know?", "What are the risks associated with this procurement document?")
+ 
     col1, col2, col3 = st.columns(3)
     with col1:
         EXAMPLES_PATH = Path(__file__).resolve().parent.parent / "example_files"
         with open(EXAMPLES_PATH / "dataset1.csv", "rb") as f:
-            st.download_button("⬇️ History Doc.csv", f, file_name="dataset1.csv", help="Historical doc example")
+            st.markdown("📄 History Document", f, file_name="dataset1.csv", help="Historical doc example"))
     with col2:
         with open(EXAMPLES_PATH / "risks.csv", "rb") as f:
-            st.download_button("⬇️ Risks Doc.csv", f, file_name="risks.csv", help="Risk types to reference")
+            st.markdown("📑 Risk Register", f, file_name="risks.csv", help="Risk types to reference")
     with col3:
         with open(EXAMPLES_PATH / "dataset_no_risks.csv", "rb") as f:
-            st.download_button("⬇️ Target Doc.csv", f, file_name="dataset_no_risks.csv", help="Target doc example")
-
-    st.markdown("### 📂 Upload Your Documents")
-    st.markdown("Drag & drop your files below. Supported: 📄 CSV, 📑 PDF, 📝 DOCX")
+            st.markdown("📝 Target Procurement File", f, file_name="dataset_no_risks.csv", help="Target doc example")
+    doc_labels = {
+        "History Document": [],
+        "Risk Register": None,
+        "Target Procurement File": None,
+    }
     
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("📄 History Document")
-    with col2:
-        st.markdown("📑 Risk Register")
-    with col3:
-        st.markdown("📝 Target Procurement File")
-    doc_labels = ["History Document", "Risk Register", "Target Procurement File"]
     uploaded_docs = {}
     
     for label in doc_labels:
         st.markdown(f"**{label}:**")
-        uploaded_file = st.file_uploader(f"Upload your {label}", type=["csv", "pdf", "docx"], key=label)
+        uploaded_file = st.file_uploader(
+            f"Upload your {label}", 
+            type=["csv", "pdf", "docx"], 
+            key=label,
+            help={
+                "History Document": "📚 Upload past procurement records. These help the model understand project patterns.",
+                "Risk Register": "⚠️ Upload a file listing types of risks and descriptions (e.g., Risk Doc.csv).",
+                "Target Procurement File": "🎯 Upload the project document you want to analyze (e.g., Target.csv)."
+            }.get(label, "")
+        )
+        
         if uploaded_file:
             st.success(f"✅ Uploaded: {uploaded_file.name}")
+            file_ext = uploaded_file.name.split(".")[-1]
+            bytes_data = uploaded_file.getvalue()
+            
+            st.text(f"🧪 Uploaded {label}: {uploaded_file.name}, size: {len(bytes_data)} bytes")
+            preview_file(io.BytesIO(bytes_data), file_ext, name=uploaded_file.name)
+    
+            # Save uploaded files appropriately
+            if label == "History Document":
+                doc_labels["History Document"].append((uploaded_file.name, bytes_data))
+            else:
+                doc_labels[label] = (uploaded_file.name, bytes_data)
+            
             uploaded_docs[label] = uploaded_file
-
-
-query = st.text_input("What do you want to know?", "What are the risks associated with this procurement document?")
-
-historical_files = st.file_uploader(
-    "Upload historical documents (.csv, .pdf, .docx)",
-    accept_multiple_files=True,
-    type=["csv", "pdf", "docx"],
-    help="📚 Historical documents are previous procurement records that help the model understand patterns and context.\n\nExample: History Doc.csv"
-)
-
-risks_file = st.file_uploader(
-    "Upload a risks document (.csv, .pdf, .docx)",
-    type=["csv", "pdf", "docx"],
-    help="⚠️ The risks document defines risk types (e.g., Schedule Risk, Cost Risk) and their descriptions for assessment guidance.\n\nExample: Risks Doc.csv"
-)
-
-target_file = st.file_uploader(
-    "Upload a target procurement document (.csv, .pdf, .docx)",
-    type=["csv", "pdf", "docx"],
-    help="🎯 The target document is the procurement form or data you'd like to analyze. It should contain project variables, dates, and dependencies.\n\nExample: Target Doc.csv"
-)
-
-historical_file_bytes = []
-if historical_files:
-    for f in historical_files:
-        bytes_data = f.getvalue()
-        file_ext = f.name.split(".")[-1]
-        st.text(f"🧪 Uploaded historical file: {f.name}, size: {len(bytes_data)} bytes")
-        preview_file(io.BytesIO(bytes_data), file_ext, name=f.name)
-        historical_file_bytes.append((f.name, bytes_data))
-
-if risks_file:
-    risks_bytes = risks_file.getvalue()
-    file_ext = risks_file.name.split(".")[-1]
-    st.text(f"🧪 Uploaded risks file: {risks_file.name}, size: {len(risks_bytes)} bytes")
-    preview_file(io.BytesIO(bytes_data), file_ext, name=f.name)
-
-
-if target_file:
-    target_bytes = target_file.getvalue()
-    file_ext = target_file.name.split(".")[-1]
-    st.text(f"🧪 Uploaded target file: {target_file.name}, size: {len(target_bytes)} bytes")
-    preview_file(io.BytesIO(bytes_data), file_ext, name=f.name)
-
-
 
 if st.button("Run Analysis"):
     if not IFI_API_KEY:
