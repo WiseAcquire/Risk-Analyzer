@@ -11,6 +11,7 @@ Original file is located at
 
 # STEP 1: Import Required Libraries
 import os
+import re
 import io
 import glob
 from pathlib import Path
@@ -349,4 +350,9 @@ if "risk_result" in st.session_state:
         st.markdown("### 🛡️ Mitigation Panel")
         mitigation_items = [m.strip() for m in mitigation_section.strip().split("\n") if m.strip()]
         for i, m in enumerate(mitigation_items):
-            st.checkbox(f"🛠 {m}", key=f"mitigation_{i}")
+            # Check if the line is a mitigation category like "1. Schedule Risk Mitigation:"
+            if re.match(r"^\d+\.\s", m):
+                st.markdown(f"### {m}")
+            else:
+                clean_text = m.lstrip("- ").strip()
+                st.checkbox(f"🛠 {clean_text}", key=f"mitigation_{i}")
