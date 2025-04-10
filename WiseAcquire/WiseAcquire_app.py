@@ -335,19 +335,19 @@ if st.button("Run Analysis"):
                 st.success("✅ Analysis complete!")
                 st.markdown("### 📊 Risk Summary Panel")
 
-              # Simulated values – replace with parsed values later
-              col1, col2, col3 = st.columns(3)
-              col1.metric("🟥 High Risks", "2")
-              col2.metric("🟧 Medium Risks", "3")
-              col3.metric("🟩 Low Risks", "4")
-              
-              st.markdown("**📈 Budget Variance:** $700,000 Overrun")
-              st.markdown("**🕒 Schedule Variance:** +15 days late")
-              
-              # Visual risk score (simulate with bar)
-              st.progress(0.68)
-              st.markdown("**Risk Score:** 68/100 — Moderate")
-
+                # Simulated values – replace with parsed values later
+                col1, col2, col3 = st.columns(3)
+                col1.metric("🟥 High Risks", "2")
+                col2.metric("🟧 Medium Risks", "3")
+                col3.metric("🟩 Low Risks", "4")
+                
+                st.markdown("**📈 Budget Variance:** $700,000 Overrun")
+                st.markdown("**🕒 Schedule Variance:** +15 days late")
+                
+                # Visual risk score (simulate with bar)
+                st.progress(0.68)
+                st.markdown("**Risk Score:** 68/100 — Moderate")
+                
 
                 st.markdown("### 📤 Export & Share")
                 with st.spinner("Generating full report..."):
