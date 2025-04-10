@@ -142,27 +142,36 @@ class RAGProcurementRisksAnalysis:
         prompt_template = PromptTemplate(
             input_variables=["retrieved_docs_str", "risks_document_content", "target_document_content"],
             template='''You are a procurement risk assessment AI. Evaluate the risks associated with the target document
-    based on the retrieved knowledge and the risks detailed in the risks document.
-    
-    ### Target Document:
-    {target_document_content}
-    
-    ### Risks Document:
-    {risks_document_content}
-    
-    ### Retrieved Risk-Related Documents:
-    {retrieved_docs_str}
-    
-    ### Task:
-    Analyze the target document and classify risks into the categories detailed in the risks document.
-    
-    Output the risk labels and a short explanation for each.
-    
-    Risk Assessment:
-    
-    Based on the risks document summarize a mitigation plan.
-    
-    Mitigation Plan:'''
+based on the retrieved knowledge and the risks detailed in the risks document.
+
+### Target Document:
+{target_document_content}
+
+### Risks Document:
+{risks_document_content}
+
+### Retrieved Risk-Related Documents:
+{retrieved_docs_str}
+
+### Task:
+Analyze the target document and classify risks into the categories detailed in the risks document.
+
+Output the risk labels and a short explanation for each.
+
+Then summarize a mitigation plan.
+
+Finally, include a structured summary for UI rendering:
+
+### Risk Summary:
+- High Risks: <number>
+- Medium Risks: <number>
+- Low Risks: <number>
+- Budget Variance: <amount> Overrun or Underrun
+- Schedule Variance: <time delay>
+- Risk Score: <score>/100
+
+Mitigation Plan:'''
+
         )
     
         chain = LLMChain(llm=llm, prompt=prompt_template)
@@ -215,13 +224,13 @@ col1, col2, col3 = st.columns(3)
 with col1:
     EXAMPLES_PATH = Path(__file__).resolve().parent.parent / "example_files"
     with open(EXAMPLES_PATH / "dataset1.csv", "rb") as f:
-        st.download_button("📄 Mock History Document", f, file_name="dataset1.csv", help="Historical doc example")
+        st.download_button("📄 Mock History  Doc", f, file_name="dataset1.csv", help="Historical doc example")
 with col2:
     with open(EXAMPLES_PATH / "risks.csv", "rb") as f:
         st.download_button("📑 Mock Risk Register", f, file_name="risks.csv", help="Risk types to reference")
 with col3:
     with open(EXAMPLES_PATH / "dataset_no_risks.csv", "rb") as f:
-        st.download_button("📝 Mock Target Procurement File", f, file_name="dataset_no_risks.csv", help="Target doc example")
+        st.download_button("📝 Mock Target File", f, file_name="dataset_no_risks.csv", help="Target doc example")
     doc_labels = {
         "History Document": [],
         "Risk Register": None,
@@ -295,6 +304,33 @@ if st.button("Run Analysis"):
             )
 
             st.session_state["risk_result"] = rag.generate_risks_analysis_rag()
+import re
+
+def extract_risk_summary(text):
+    summary = {
+        "high": None,
+        "medium": None,
+        "low": None,
+        "budget_variance": None,
+        "schedule_variance": None,
+        "risk_score": None
+    }
+
+    patterns = {
+        "high": r"High Risks:\s*(\d+)",
+        "medium": r"Medium Risks:\s*(\d+)",
+        "low": r"Low Risks:\s*(\d+)",
+        "budget_variance": r"Budget Variance:\s*([\$\d,]+(?: Overrun| Underrun)?)",
+        "schedule_variance": r"Schedule Variance:\s*([^\n]+)",
+        "risk_score": r"Risk Score:\s*(\d+)/100"
+    }
+
+    for key, pattern in patterns.items():
+        match = re.search(pattern, text)
+        if match:
+            summary[key] = match.group(1)
+
+    return summary
 
 # === Render Analysis Results If Present ===
 if "risk_result" in st.session_state:
@@ -303,14 +339,19 @@ if "risk_result" in st.session_state:
     st.markdown("### 📊 Risk Summary Panel")
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("🟥 High Risks", "2")
-    col2.metric("🟧 Medium Risks", "3")
-    col3.metric("🟩 Low Risks", "4")
-
-    st.markdown("**📈 Budget Variance:** $700,000 Overrun")
-    st.markdown("**🕒 Schedule Variance:** +15 days late")
-    st.progress(0.68)
-    st.markdown("**Risk Score:** 68/100 — Moderate")
+    summary = extract_risk_summary(result)
+    col1.metric("🟥 High Risks", summary["high"] or "N/A")
+    col2.metric("🟧 Medium Risks", summary["medium"] or "N/A")
+    col3.metric("🟩 Low Risks", summary["low"] or "N/A")
+    
+    st.markdown(f"**📈 Budget Variance:** {summary['budget_variance'] or 'N/A'}")
+    st.markdown(f"**🕒 Schedule Variance:** {summary['schedule_variance'] or 'N/A'}")
+    
+    if summary['risk_score']:
+        st.progress(int(summary["risk_score"]) / 100)
+        st.markdown(f"**Risk Score:** {summary['risk_score']}/100")
+    else:
+        st.markdown("**Risk Score:** Not provided")
 
     st.markdown("### 📤 Export & Share")
     st.download_button("📄 Download as PDF", result, file_name="risk_analysis.pdf")
