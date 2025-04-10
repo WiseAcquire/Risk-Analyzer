@@ -232,56 +232,62 @@ uploaded_docs = {}
 
 for label in doc_labels:
     st.markdown(f"**{label}:**")
-    uploaded_file = st.file_uploader(
-        f"Upload your {label}", 
-        type=["csv", "pdf", "docx"], 
+    uploaded_files = st.file_uploader(
+        f"Upload your {label}",
+        type=["csv", "pdf", "docx"],
         key=label,
+        accept_multiple_files=True,
         help={
             "History Document": "📚 Upload past procurement records. These help the model understand project patterns.",
             "Risk Register": "⚠️ Upload a file listing types of risks and descriptions (e.g., Risk Doc.csv).",
             "Target Procurement File": "🎯 Upload the project document you want to analyze (e.g., Target.csv)."
         }.get(label, "")
     )
-    
-    if uploaded_file:
-        st.success(f"✅ Uploaded: {uploaded_file.name}")
-        file_ext = uploaded_file.name.split(".")[-1]
-        bytes_data = uploaded_file.getvalue()
-        
-        st.text(f"🧪 Uploaded {label}: {uploaded_file.name}, size: {len(bytes_data)} bytes")
-        preview_file(io.BytesIO(bytes_data), file_ext, name=uploaded_file.name)
 
-        # Save uploaded files appropriately
-        if label == "History Document":
-            doc_labels["History Document"].append((uploaded_file.name, bytes_data))
-        else:
-            doc_labels[label] = (uploaded_file.name, bytes_data)
-        
-        uploaded_docs[label] = uploaded_file
+    if uploaded_files:
+        uploaded_docs[label] = []  # Initialize list to store files for this label
+
+        for uploaded_file in uploaded_files:
+            st.success(f"✅ Uploaded: {uploaded_file.name}")
+            file_ext = uploaded_file.name.split(".")[-1]
+            bytes_data = uploaded_file.getvalue()
+
+            st.text(f"🧪 Uploaded {label}: {uploaded_file.name}, size: {len(bytes_data)} bytes")
+            preview_file(io.BytesIO(bytes_data), file_ext, name=uploaded_file.name)
+
+            uploaded_docs[label].append((uploaded_file.name, bytes_data))
+
+# Extract specific categories if needed later
+historical_files = uploaded_docs.get("History Document", [])
+risks_files = uploaded_docs.get("Risk Register", [])
+target_files = uploaded_docs.get("Target Procurement File", [])
 
 if st.button("Run Analysis"):
     if not IFI_API_KEY:
         st.error("Missing API key!")
-    elif not historical_files or not risks_file or not target_file:
+    elif not historical_files or not risks_files or not target_files:
         st.warning("Please upload all required files.")
     else:
         with st.spinner("Processing files and analyzing..."):
             base_dir = Path(".")
+            (base_dir / "historical_documents").mkdir(exist_ok=True)
+            (base_dir / "risks_document").mkdir(exist_ok=True)
+            (base_dir / "target_document").mkdir(exist_ok=True)
 
             # Save historical files
-            for fname, fbytes in historical_file_bytes:
+            for fname, fbytes in historical_files:
                 with open(base_dir / "historical_documents" / fname, "wb") as out:
                     out.write(fbytes)
 
-            # Save risks file
-            risks_path = base_dir / "risks_document" / risks_file.name
-            with open(risks_path, "wb") as out:
-                out.write(risks_bytes)
+            # Save risk register files
+            for fname, fbytes in risks_files:
+                with open(base_dir / "risks_document" / fname, "wb") as out:
+                    out.write(fbytes)
 
-            # Save target file
-            target_path = base_dir / "target_document" / target_file.name
-            with open(target_path, "wb") as out:
-                out.write(target_bytes)
+            # Save target procurement files
+            for fname, fbytes in target_files:
+                with open(base_dir / "target_document" / fname, "wb") as out:
+                    out.write(fbytes)
 
             # Run RAG analysis
             rag = RAGProcurementRisksAnalysis(
