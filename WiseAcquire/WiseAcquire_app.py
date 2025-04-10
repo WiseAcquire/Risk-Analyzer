@@ -215,49 +215,49 @@ This tool uses LLM-based Retrieval-Augmented Generation (RAG) to assess risks in
     with col1:
         EXAMPLES_PATH = Path(__file__).resolve().parent.parent / "example_files"
         with open(EXAMPLES_PATH / "dataset1.csv", "rb") as f:
-            st.markdown("📄 History Document", f, file_name="dataset1.csv", help="Historical doc example"))
+            st.download_button("📄 History Document", f, file_name="dataset1.csv", help="Historical doc example"))
     with col2:
         with open(EXAMPLES_PATH / "risks.csv", "rb") as f:
-            st.markdown("📑 Risk Register", f, file_name="risks.csv", help="Risk types to reference")
+            st.download_button("📑 Risk Register", f, file_name="risks.csv", help="Risk types to reference")
     with col3:
         with open(EXAMPLES_PATH / "dataset_no_risks.csv", "rb") as f:
-            st.markdown("📝 Target Procurement File", f, file_name="dataset_no_risks.csv", help="Target doc example")
+            st.download_button("📝 Target Procurement File", f, file_name="dataset_no_risks.csv", help="Target doc example")
         doc_labels = {
             "History Document": [],
             "Risk Register": None,
             "Target Procurement File": None,
         }
         
-        uploaded_docs = {}
+    uploaded_docs = {}
+    
+    for label in doc_labels:
+        st.markdown(f"**{label}:**")
+        uploaded_file = st.file_uploader(
+            f"Upload your {label}", 
+            type=["csv", "pdf", "docx"], 
+            key=label,
+            help={
+                "History Document": "📚 Upload past procurement records. These help the model understand project patterns.",
+                "Risk Register": "⚠️ Upload a file listing types of risks and descriptions (e.g., Risk Doc.csv).",
+                "Target Procurement File": "🎯 Upload the project document you want to analyze (e.g., Target.csv)."
+            }.get(label, "")
+        )
         
-        for label in doc_labels:
-            st.markdown(f"**{label}:**")
-            uploaded_file = st.file_uploader(
-                f"Upload your {label}", 
-                type=["csv", "pdf", "docx"], 
-                key=label,
-                help={
-                    "History Document": "📚 Upload past procurement records. These help the model understand project patterns.",
-                    "Risk Register": "⚠️ Upload a file listing types of risks and descriptions (e.g., Risk Doc.csv).",
-                    "Target Procurement File": "🎯 Upload the project document you want to analyze (e.g., Target.csv)."
-                }.get(label, "")
-            )
+        if uploaded_file:
+            st.success(f"✅ Uploaded: {uploaded_file.name}")
+            file_ext = uploaded_file.name.split(".")[-1]
+            bytes_data = uploaded_file.getvalue()
             
-            if uploaded_file:
-                st.success(f"✅ Uploaded: {uploaded_file.name}")
-                file_ext = uploaded_file.name.split(".")[-1]
-                bytes_data = uploaded_file.getvalue()
-                
-                st.text(f"🧪 Uploaded {label}: {uploaded_file.name}, size: {len(bytes_data)} bytes")
-                preview_file(io.BytesIO(bytes_data), file_ext, name=uploaded_file.name)
-        
-                # Save uploaded files appropriately
-                if label == "History Document":
-                    doc_labels["History Document"].append((uploaded_file.name, bytes_data))
-                else:
-                    doc_labels[label] = (uploaded_file.name, bytes_data)
-                
-                uploaded_docs[label] = uploaded_file
+            st.text(f"🧪 Uploaded {label}: {uploaded_file.name}, size: {len(bytes_data)} bytes")
+            preview_file(io.BytesIO(bytes_data), file_ext, name=uploaded_file.name)
+    
+            # Save uploaded files appropriately
+            if label == "History Document":
+                doc_labels["History Document"].append((uploaded_file.name, bytes_data))
+            else:
+                doc_labels[label] = (uploaded_file.name, bytes_data)
+            
+            uploaded_docs[label] = uploaded_file
 
 if st.button("Run Analysis"):
     if not IFI_API_KEY:
