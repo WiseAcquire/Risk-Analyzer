@@ -205,12 +205,17 @@ class RAGProcurementRisksAnalysis:
 
     
         chain = LLMChain(llm=llm, prompt=prompt_template)
-        response = chain.run({
+        print("📦 Inputs to chain.run():")
+        print("retrieved_docs_str:", bool(retrieved_docs_str))
+        print("risks_document_content:", bool(risks_content))
+        print("target_document_content:", bool(target_content))
+
+        response = chain.invoke({
             "retrieved_docs_str": retrieved_docs_str,
             "risks_document_content": risks_content,
             "target_document_content": target_content
         })
-        
+                
 
         try:
             json_start = response.find('{')
