@@ -113,6 +113,7 @@ class RAGProcurementRisksAnalysis:
     
     def generate_risks_analysis_rag(self):
         llm = ChatOpenAI(model="gpt-4o", temperature=0.5, openai_api_key=self.api_key)
+    
         # Validate document availability
         if not self.risks_document or not self.risks_document[0].page_content.strip():
             st.error("❌ The risks document is missing or empty.")
@@ -121,11 +122,15 @@ class RAGProcurementRisksAnalysis:
         if not self.target_document or not self.target_document[0].page_content.strip():
             st.error("❌ The target document is missing or empty.")
             return "Error: Target document missing."
-        
+    
+        # ✅ Add this
+        risks_content = self.risks_document[0].page_content
+        target_content = self.target_document[0].page_content
+    
         # Try semantic search and fallback
         retrieved_docs_str = self.semantic_search()
         if not retrieved_docs_str.strip():
-            retrieved_docs_str = "No relevant documents were retrieved.Please proceed with only risks and target documents."
+            retrieved_docs_str = "No relevant documents were retrieved. Please proceed with only risks and target documents."
     
         if not risks_content.strip():
             st.error("❌ The risks document is empty. Please upload a valid file.")
