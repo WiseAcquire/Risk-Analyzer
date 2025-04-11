@@ -360,41 +360,44 @@ def extract_risk_summary(text):
 
 # === Render Analysis Results If Present ===
 if "risk_result" in st.session_state:
-    result_data = st.session_state["risk_result"]
-
-    if not result_data:
-        st.error("⚠️ Failed to parse risk analysis output.")
+    result_data = st.session_state.get("risk_result", {})
+    
+    if not isinstance(result_data, dict):
+        st.error("⚠️ The model did not return a structured JSON output. Please try again or check the LLM output formatting.")
+        st.markdown("### 🔍 Raw Output")
+        st.code(result_data if isinstance(result_data, str) else str(result_data))
     else:
         summary = result_data.get("summary", {})
         risks = result_data.get("risks", [])
         timeline_data = pd.DataFrame(result_data.get("timeline", []))
-
+    
         st.success("✅ Analysis complete!")
         st.markdown("### 📊 Risk Summary Panel")
-
+    
         col1, col2, col3 = st.columns(3)
         col1.metric("🟥 High Risks", summary.get("high", "N/A"))
         col2.metric("🟧 Medium Risks", summary.get("medium", "N/A"))
         col3.metric("🟩 Low Risks", summary.get("low", "N/A"))
-
+    
         st.markdown(f"**📈 Budget Variance:** {summary.get('budget_variance', 'N/A')}")
         st.markdown(f"**🕒 Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
-
+    
         if summary.get("risk_score") is not None:
             st.progress(int(summary["risk_score"]) / 100)
             st.markdown(f"**Risk Score:** {summary['risk_score']}/100")
-
+    
         st.markdown("### 📋 Risk Explorer Panel")
         for i, risk in enumerate(risks):
             with st.expander(f"{risk['type']} **{risk['title']}** — {risk['severity']} Risk ({risk['confidence']}%)"):
                 st.markdown(f"**Key Insight:** {risk['key_data']}")
                 st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
-
+    
         if not timeline_data.empty:
             st.markdown("### ⏱️ Timeline View")
             import plotly.express as px
             fig = px.timeline(timeline_data, x_start="start", x_end="end", y="task", color="risk")
             st.plotly_chart(fig, use_container_width=True)
+    
 
 
     st.markdown("### 📤 Export & Share")
