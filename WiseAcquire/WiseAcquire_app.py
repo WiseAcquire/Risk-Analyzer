@@ -234,31 +234,24 @@ class RAGProcurementRisksAnalysis:
         
         
         try:
-            response_obj = chain.invoke({
-                "retrieved_docs_str": retrieved_docs_str,
-                "risks_document_content": risks_content,
-                "target_document_content": target_content
-            })
+            response_obj = chain.invoke(inputs)
+            response_text = response_obj.get("text", "") if isinstance(response_obj, dict) else str(response_obj)
         except ValueError as e:
             st.error(f"❌ Chain input validation failed: {e}")
             return "Error: Invalid input keys"
-            
-            response_text = response_obj.get("text", "") if isinstance(response_obj, dict) else str(response_obj)
-            response_text = response_text.strip()
-            
-            # Force-try to find the first JSON block
-            json_start = response_text.find('{')
-            response_text = response_text[json_start:]
-            
-            # Remove any markdown-style wrapping (e.g., triple backticks)
-            response_text = re.sub(r"^```(?:json)?|```$", "", response_text.strip(), flags=re.MULTILINE)
-            
-            try:
-                result_json = json.loads(response_text)
-            except Exception as e:
-                st.error("❌ The model returned invalid JSON. Showing raw response for debugging.")
-                print("❌ Failed to parse JSON from model output:", e)
-                return response_text
+        
+        response_text = response_text.strip()
+        json_start = response_text.find('{')
+        response_text = response_text[json_start:]
+        response_text = re.sub(r"^```(?:json)?|```$", "", response_text.strip(), flags=re.MULTILINE)
+        
+        try:
+            result_json = json.loads(response_text)
+        except Exception as e:
+            st.error("❌ The model returned invalid JSON. Showing raw response for debugging.")
+            print("❌ Failed to parse JSON from model output:", e)
+            return response_text
+
 
 
         except ValueError as e:
