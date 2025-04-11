@@ -183,14 +183,18 @@ class RAGProcurementRisksAnalysis:
         Then respond in the following JSON format (strictly this structure):
         
         You must ONLY return a valid JSON object. Do NOT include any text before or after the JSON block. No explanations. Only return this exact structure:
+        Respond ONLY in valid JSON.
+
+        DO NOT wrap in triple backticks.
+        DO NOT add commentary.
+        
+        Your output must begin with `{` and follow EXACTLY this format:
         {
-          "summary": "In plain English...",
-          "structured": {
-            "risks": [...],
-            "summary": {...},
-            "timeline": [...]
-          }
-        },
+          "risks": [...],
+          "summary": {...},
+          "timeline": [...]
+        }
+
         {
           "risks": [
             {
@@ -248,70 +252,42 @@ class RAGProcurementRisksAnalysis:
         
         try:
             response_obj = chain.invoke(inputs)
+            # 1. Get LLM raw text response
             response_text = response_obj.get("text", "") if isinstance(response_obj, dict) else str(response_obj)
-        except ValueError as e:
-            st.error(f"❌ Chain input validation failed: {e}")
-            return "Error: Invalid input keys"
-        
-        # Clean up any rogue markdown and whitespace
-        response_text = response_text.strip()
-        
-        # Remove markdown code block wrapping, if any
-        response_text = re.sub(r"^```(?:json)?", "", response_text, flags=re.MULTILINE)
-        response_text = re.sub(r"```$", "", response_text, flags=re.MULTILINE)
-        
-        # Re-strip to be safe
-        response_text = response_text.strip()
-        
-        # Extra step: Ensure it starts with a valid JSON object
-        json_start = response_text.find('{')
-        if json_start != -1:
-            response_text = response_text[json_start:]
-       
-        print("📥 Cleaned LLM Output (first 500 chars):")
-        print(response_text[:500])
-
-        
-        try:
-            result_json = json.loads(response_text)
-            required_keys = {"risks", "summary", "timeline"}
-            if not all(k in result_json for k in required_keys):
-                st.error(f"❌ The model did not return all required keys. Missing: {required_keys - result_json.keys()}")
+            
+            # 2. Clean response
+            response_text = response_text.strip()
+            response_text = re.sub(r"^```(?:json)?", "", response_text, flags=re.MULTILINE)
+            response_text = re.sub(r"```$", "", response_text, flags=re.MULTILINE)
+            
+            # 3. Strip leading non-JSON text
+            json_start = response_text.find("{")
+            if json_start == -1:
+                st.error("❌ No JSON object detected in model output.")
                 return response_text
-
-        except json.JSONDecodeError as e:
-            st.error("❌ Invalid JSON returned from the model.")
-            print("❌ JSON decode error:", e)
-            return response_text  # Show raw output in UI
-
-
-
-        except ValueError as e:
-            st.error(f"❌ Chain input error: {e}")
-            print("❌ Chain input error:", e)
-            return "Error: Chain input validation failed."
-                
-
-        try:
-            json_start = response.find('{')
-            json_text = response[json_start:]
-            result_json = json.loads(json_text)
-            required_keys = {"risks", "summary", "timeline"}
-            if not all(k in result_json for k in required_keys):
-                st.error(f"❌ The model did not return all required keys. Missing: {required_keys - result_json.keys()}")
+            
+            response_text = response_text[json_start:].strip()
+            
+            # 4. Parse JSON
+            try:
+                result_json = json.loads(response_text)
+            except json.JSONDecodeError as e:
+                st.error("❌ Failed to parse JSON from model output.")
+                print("⚠️ JSONDecodeError:", e)
+                print("🧾 Raw cleaned output:\n", response_text[:1000])
                 return response_text
-
-        except Exception as e:
-            st.error("❌ The model returned invalid JSON. Showing raw response for debugging.")
-            print("❌ Failed to parse JSON from model output:", e)
-            return response  # fallback for manual inspection
-
-
-        
-    
-        self.save_risk_analysis_to_file(response)  # Save raw LLM response
-        return result_json
-
+            
+            # 5. Validate required keys
+            required_keys = {"risks", "summary", "timeline"}
+            missing_keys = required_keys - result_json.keys()
+            if missing_keys:
+                st.error(f"❌ JSON missing required keys: {missing_keys}")
+                print("⚠️ JSON keys present:", result_json.keys())
+                return json.dumps(result_json, indent=2)  # Fallback to raw view
+            
+            # 6. Save & return
+            self.save_risk_analysis_to_file(json.dumps(result_json, indent=2))
+            return result_json
 
 # STEP 5: Preview Function
 def preview_file(file, file_type, name="Uploaded file"):
@@ -463,8 +439,8 @@ def extract_risk_summary(text):
 # === Render Analysis Results If Present ===
 if "risk_result" in st.session_state:
     result_data = st.session_state.get("risk_result", {})
-    
-    if not isinstance(result_data, dict):
+    st.text_area("🧾 Full Raw Output from LLM", response_text[:3000])
+    if not isinstance(result_data, dict) or "risks" not in result_data:
         st.error("⚠️ The model did not return a structured JSON output. Please try again or check the LLM output formatting.")
         st.markdown("### 🔍 Raw Output")
         st.markdown("### 📤 Raw LLM Output Before Parsing")
