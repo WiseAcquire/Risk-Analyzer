@@ -13,6 +13,7 @@ Original file is located at
 import os
 import re
 import io
+import json
 import glob
 from pathlib import Path
 import pandas as pd
@@ -159,35 +160,36 @@ class RAGProcurementRisksAnalysis:
         
         Then respond in the following JSON format (strictly this structure):
         
-        ```json
-        {{
+        You must ONLY return a valid JSON object. Do NOT include any text before or after the JSON block. No explanations. Only return this exact structure:
+        
+        {
           "risks": [
-            {{
+            {
               "title": "Short descriptive title",
               "type": "Category (e.g., Cost, Schedule)",
               "severity": "High/Medium/Low",
               "confidence": ConfidenceScoreOutOf100,
               "key_data": "e.g. $200K overrun or 10 days delay",
               "mitigation": "Suggested action"
-            }}
+            }
           ],
-          "summary": {{
+          "summary": {
             "high": <int>,
             "medium": <int>,
             "low": <int>,
             "budget_variance": "Amount Overrun/Underrun",
             "schedule_variance": "Time delay",
             "risk_score": <int>
-          }},
+          },
           "timeline": [
-            {{
+            {
               "task": "Phase Name",
               "start": "YYYY-MM-DD",
               "end": "YYYY-MM-DD",
               "risk": "Risk Label"
-            }}
+            }
           ]
-        }}
+        }
 ''' )
         
 
@@ -199,17 +201,17 @@ class RAGProcurementRisksAnalysis:
             "target_document_content": target_content
         })
         
+
         try:
-            result_json = json.loads(response.split("```json")[1].split("```")[0].strip())
+            json_text = re.search(r'\{[\s\S]*\}', response).group(0)
+            result_json = json.loads(json_text)
         except Exception as e:
-            print("Failed to parse JSON from model output:", e)
-            result_json = {}
+            print("❌ Failed to parse JSON from model output:", e)
+            result_json = response  # fallback to raw string so UI doesn't break
         
-        self.save_risk_analysis_to_file(response)  # Save full response
-        return result_json
     
-        self.save_risk_analysis_to_file(risk_analysis)
-        return risk_analysis
+        self.save_risk_analysis_to_file(response)  # Save raw LLM response
+        return result_json
 
 
 # STEP 5: Preview Function
@@ -401,46 +403,19 @@ if "risk_result" in st.session_state:
 
 
     st.markdown("### 📤 Export & Share")
-    st.download_button("📄 Download as PDF", result, file_name="risk_analysis.pdf")
-    st.download_button("📊 Export to Excel", result, file_name="risk_analysis.xlsx")
-    st.download_button("💾 Export as JSON", result, file_name="risk_analysis.json")
-
-    if "Mitigation Plan:" in result:
-        risk_section, mitigation_section = result.split("Mitigation Plan:", 1)
+    if isinstance(result_data, dict):
+        export_text = json.dumps(result_data, indent=2)
     else:
-        risk_section = result
-        mitigation_section = ""
+        export_text = str(result_data)
+    
+    st.download_button("📄 Download as TXT", export_text, file_name="risk_analysis.txt")
+    st.download_button("💾 Export as JSON", export_text, file_name="risk_analysis.json")
 
-    # Risk Panel
-    st.markdown("### 📋 Risk Explorer Panel")
-    parsed_risks = [
-        {"title": "Phase 1 Delay", "type": "📅 Schedule", "severity": "High", "confidence": 87, "key_data": "15 days late", "mitigation": "Reschedule milestone with buffer"},
-        {"title": "Supplier Budget Overrun", "type": "💰 Cost", "severity": "Medium", "confidence": 75, "key_data": "$200K over", "mitigation": "Re-negotiate supplier terms"},
-    ]
-    for i, risk in enumerate(parsed_risks):
-        with st.expander(f"{risk['type']} **{risk['title']}** — {risk['severity']} Risk ({risk['confidence']}%)"):
-            st.markdown(f"**Key Insight:** {risk['key_data']}")
-            st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
 
-    # Timeline
-    st.markdown("### ⏱️ Timeline View")
-    import plotly.express as px
-    timeline_data = pd.DataFrame([
-        dict(Task="Planning", Start='2024-01-01', Finish='2024-01-15', Risk="None"),
-        dict(Task="Phase 1", Start='2024-01-16', Finish='2024-02-15', Risk="Delay"),
-        dict(Task="Phase 2", Start='2024-02-16', Finish='2024-03-15', Risk="Cost Overrun"),
-    ])
-    fig = px.timeline(timeline_data, x_start="Start", x_end="Finish", y="Task", color="Risk")
-    st.plotly_chart(fig, use_container_width=True)
+    
+    # Fallback UI to debug raw output            
+    if not isinstance(result_data, dict):
+        st.error("⚠️ The model did not return a valid JSON. Check the prompt or document inputs.")
+        st.markdown("### 🧾 Raw Output")
+        st.code(result_data if isinstance(result_data, str) else str(result_data))
 
-    # Mitigation Checklist Panel
-    if mitigation_section.strip():
-        st.markdown("### 🛡️ Mitigation Panel")
-        mitigation_items = [m.strip() for m in mitigation_section.strip().split("\n") if m.strip()]
-        for i, m in enumerate(mitigation_items):
-            # Check if the line is a mitigation category like "1. Schedule Risk Mitigation:"
-            if re.match(r"^\d+\.\s", m):
-                st.markdown(f"### {m}")
-            else:
-                clean_text = m.lstrip("- ").strip()
-                st.checkbox(f"🛠 {clean_text}", key=f"mitigation_{i}")
