@@ -53,6 +53,12 @@ class RAGProcurementRisksAnalysis:
         self.risks_document = self.load_documents(risks_document_folder_path)
         self.target_document = self.load_documents(target_document_folder_path)
         self.risk_analysis_output_path = risk_analysis_output_path
+    def extract_json_string(text):
+        json_start = text.find('{')
+        json_text = text[json_start:].strip()
+        if json_text.endswith("```"):
+            json_text = json_text[:-3].strip()
+        return json_text
 
     def load_documents(self, folder_path):
         all_documents = []
@@ -261,6 +267,11 @@ class RAGProcurementRisksAnalysis:
         
         try:
             result_json = json.loads(response_text)
+            required_keys = {"risks", "summary", "timeline"}
+            if not all(k in result_json for k in required_keys):
+                st.error(f"❌ The model did not return all required keys. Missing: {required_keys - result_json.keys()}")
+                return response_text
+
         except json.JSONDecodeError as e:
             st.error("❌ Invalid JSON returned from the model.")
             print("❌ JSON decode error:", e)
@@ -278,6 +289,11 @@ class RAGProcurementRisksAnalysis:
             json_start = response.find('{')
             json_text = response[json_start:]
             result_json = json.loads(json_text)
+            required_keys = {"risks", "summary", "timeline"}
+            if not all(k in result_json for k in required_keys):
+                st.error(f"❌ The model did not return all required keys. Missing: {required_keys - result_json.keys()}")
+                return response_text
+
         except Exception as e:
             st.error("❌ The model returned invalid JSON. Showing raw response for debugging.")
             print("❌ Failed to parse JSON from model output:", e)
