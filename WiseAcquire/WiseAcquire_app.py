@@ -223,7 +223,23 @@ class RAGProcurementRisksAnalysis:
                 "target_document_content": target_content
             })
             
-            response = response_obj.get("text", "") if isinstance(response_obj, dict) else response_obj
+            response_text = response_obj.get("text", "") if isinstance(response_obj, dict) else str(response_obj)
+            response_text = response_text.strip()
+            
+            # Force-try to find the first JSON block
+            json_start = response_text.find('{')
+            response_text = response_text[json_start:]
+            
+            # Remove any markdown-style wrapping (e.g., triple backticks)
+            response_text = re.sub(r"^```(?:json)?|```$", "", response_text.strip(), flags=re.MULTILINE)
+            
+            try:
+                result_json = json.loads(response_text)
+            except Exception as e:
+                st.error("❌ The model returned invalid JSON. Showing raw response for debugging.")
+                print("❌ Failed to parse JSON from model output:", e)
+                return response_text
+
 
         except ValueError as e:
             st.error(f"❌ Chain input error: {e}")
