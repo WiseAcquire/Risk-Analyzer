@@ -285,6 +285,11 @@ class RAGProcurementRisksAnalysis:
             # 6. Save & return
             self.save_risk_analysis_to_file(json.dumps(result_json, indent=2))
             return result_json
+            
+        except Exception as e:
+            st.error("❌ An unexpected error occurred while generating the risk analysis.")
+            print("⚠️ Exception during chain.invoke:", e)
+            return f"Error: {str(e)}"
 
 # STEP 5: Preview Function
 def preview_file(file, file_type, name="Uploaded file"):
