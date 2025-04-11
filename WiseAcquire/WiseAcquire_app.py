@@ -183,7 +183,14 @@ class RAGProcurementRisksAnalysis:
         Then respond in the following JSON format (strictly this structure):
         
         You must ONLY return a valid JSON object. Do NOT include any text before or after the JSON block. No explanations. Only return this exact structure:
-        
+        {
+          "summary": "In plain English...",
+          "structured": {
+            "risks": [...],
+            "summary": {...},
+            "timeline": [...]
+          }
+        },
         {
           "risks": [
             {
