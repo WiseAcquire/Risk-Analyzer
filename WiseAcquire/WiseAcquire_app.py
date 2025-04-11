@@ -78,6 +78,8 @@ class RAGProcurementRisksAnalysis:
                 except Exception as e:
                     print(f"⚠️ Could not load {file_path}: {e}")
         print(f"📄 Loaded {len(all_documents)} docs from {folder_path}")
+        if not self.historical_documents:
+            print("⚠️ No historical documents loaded!")
         return all_documents
 
     def create_embeddings(self):
@@ -143,6 +145,11 @@ class RAGProcurementRisksAnalysis:
         prompt_template = PromptTemplate(
             input_variables=["retrieved_docs_str", "risks_document_content", "target_document_content"],
             template='''
+        Strictly follow these instructions:
+        - DO NOT add any explanation or text outside the JSON.
+        - Output must be valid JSON only.
+        - Do not wrap in markdown or triple backticks.
+
         You are a procurement risk assessment AI. Evaluate the risks associated with the target document
         based on the retrieved knowledge and the risks detailed in the risks document.
         
@@ -203,11 +210,13 @@ class RAGProcurementRisksAnalysis:
         
 
         try:
-            json_text = re.search(r'\{[\s\S]*\}', response).group(0)
+            json_start = response.find('{')
+            json_text = response[json_start:]
             result_json = json.loads(json_text)
         except Exception as e:
             print("❌ Failed to parse JSON from model output:", e)
-            result_json = response  # fallback to raw string so UI doesn't break
+            result_json = response
+
         
     
         self.save_risk_analysis_to_file(response)  # Save raw LLM response
@@ -368,6 +377,8 @@ if "risk_result" in st.session_state:
     if not isinstance(result_data, dict):
         st.error("⚠️ The model did not return a structured JSON output. Please try again or check the LLM output formatting.")
         st.markdown("### 🔍 Raw Output")
+        st.markdown("### 📤 Raw LLM Output Before Parsing")
+        st.code(response[:1000])  # Trim to avoid overload
         st.code(result_data if isinstance(result_data, str) else str(result_data))
     else:
         summary = result_data.get("summary", {})
