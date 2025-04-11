@@ -154,7 +154,9 @@ class RAGProcurementRisksAnalysis:
         print(target_content[:500])
 
     
-        prompt_template = PromptTemplate(
+        prompt_template = PromptTemplate.from_template('''
+        Strictly follow these instructions:
+        - DO NOT add any explanation or text outside the JSON.
             input_variables=["retrieved_docs_str", "risks_document_content", "target_document_content"],
             template='''
         Strictly follow these instructions:
@@ -220,7 +222,7 @@ class RAGProcurementRisksAnalysis:
             }
           ]
         }
-''' )
+''')
         
 
     
