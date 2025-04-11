@@ -222,13 +222,19 @@ class RAGProcurementRisksAnalysis:
             "target_document_content": target_content.strip()
         }
         
-        # Validate required keys are present
+        # 🧪 Debugging: Print input keys and their lengths
         for k, v in inputs.items():
-            if not v:
-                raise ValueError(f"Input key '{k}' is empty or missing!")
+            print(f"[DEBUG] {k} - Length: {len(v)}")
         
+        # Validate: Raise clear error if empty
+        missing_keys = [k for k, v in inputs.items() if not v]
+        if missing_keys:
+            st.error(f"❌ Chain input error: Missing or empty keys: {missing_keys}")
+            return f"Error: Chain input validation failed. Missing keys: {missing_keys}"
+        
+        # Now run the chain
         response_obj = chain.invoke(inputs)
-
+        
         try:
             response_obj = chain.invoke({
                 "retrieved_docs_str": retrieved_docs_str,
