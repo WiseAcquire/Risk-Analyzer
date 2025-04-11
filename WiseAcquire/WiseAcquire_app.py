@@ -216,6 +216,19 @@ class RAGProcurementRisksAnalysis:
         print("risks_document_content:", bool(risks_content))
         print("target_document_content:", bool(target_content))
 
+        inputs = {
+            "retrieved_docs_str": retrieved_docs_str.strip(),
+            "risks_document_content": risks_content.strip(),
+            "target_document_content": target_content.strip()
+        }
+        
+        # Validate required keys are present
+        for k, v in inputs.items():
+            if not v:
+                raise ValueError(f"Input key '{k}' is empty or missing!")
+        
+        response_obj = chain.invoke(inputs)
+
         try:
             response_obj = chain.invoke({
                 "retrieved_docs_str": retrieved_docs_str,
@@ -418,7 +431,7 @@ if "risk_result" in st.session_state:
         st.error("⚠️ The model did not return a structured JSON output. Please try again or check the LLM output formatting.")
         st.markdown("### 🔍 Raw Output")
         st.markdown("### 📤 Raw LLM Output Before Parsing")
-        st.code(response[:1000])  # Trim to avoid overload
+        st.code(result_data[:1000] if isinstance(result_data, str) else json.dumps(result_data, indent=2)[:1000])
         st.code(result_data if isinstance(result_data, str) else str(result_data))
     else:
         summary = result_data.get("summary", {})
