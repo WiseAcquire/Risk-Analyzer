@@ -232,8 +232,6 @@ class RAGProcurementRisksAnalysis:
             st.error(f"❌ Chain input error: Missing or empty keys: {missing_keys}")
             return f"Error: Chain input validation failed. Missing keys: {missing_keys}"
         
-        # Now run the chain
-        response_obj = chain.invoke(inputs)
         
         try:
             response_obj = chain.invoke({
@@ -241,6 +239,9 @@ class RAGProcurementRisksAnalysis:
                 "risks_document_content": risks_content,
                 "target_document_content": target_content
             })
+        except ValueError as e:
+            st.error(f"❌ Chain input validation failed: {e}")
+            return "Error: Invalid input keys"
             
             response_text = response_obj.get("text", "") if isinstance(response_obj, dict) else str(response_obj)
             response_text = response_text.strip()
