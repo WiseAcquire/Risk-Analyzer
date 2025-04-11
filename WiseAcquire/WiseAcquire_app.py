@@ -217,11 +217,14 @@ class RAGProcurementRisksAnalysis:
         print("target_document_content:", bool(target_content))
 
         try:
-            response = chain.invoke({
+            response_obj = chain.invoke({
                 "retrieved_docs_str": retrieved_docs_str,
                 "risks_document_content": risks_content,
                 "target_document_content": target_content
             })
+            
+            response = response_obj.get("text", "") if isinstance(response_obj, dict) else response_obj
+
         except ValueError as e:
             st.error(f"❌ Chain input error: {e}")
             print("❌ Chain input error:", e)
@@ -233,8 +236,10 @@ class RAGProcurementRisksAnalysis:
             json_text = response[json_start:]
             result_json = json.loads(json_text)
         except Exception as e:
+            st.error("❌ The model returned invalid JSON. Showing raw response for debugging.")
             print("❌ Failed to parse JSON from model output:", e)
-            result_json = response
+            return response  # fallback for manual inspection
+
 
         
     
