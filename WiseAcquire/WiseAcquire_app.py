@@ -141,45 +141,72 @@ class RAGProcurementRisksAnalysis:
     
         prompt_template = PromptTemplate(
             input_variables=["retrieved_docs_str", "risks_document_content", "target_document_content"],
-            template='''You are a procurement risk assessment AI. Evaluate the risks associated with the target document
-based on the retrieved knowledge and the risks detailed in the risks document.
+            template='''
+        You are a procurement risk assessment AI. Evaluate the risks associated with the target document
+        based on the retrieved knowledge and the risks detailed in the risks document.
+        
+        ### Target Document:
+        {target_document_content}
+        
+        ### Risks Document:
+        {risks_document_content}
+        
+        ### Retrieved Risk-Related Documents:
+        {retrieved_docs_str}
+        
+        ### Task:
+        Analyze the target document and classify risks into the categories detailed in the risks document.
+        
+        Then respond in the following JSON format (strictly this structure):
+        
+        ```json
+        {{
+          "risks": [
+            {{
+              "title": "Short descriptive title",
+              "type": "Category (e.g., Cost, Schedule)",
+              "severity": "High/Medium/Low",
+              "confidence": ConfidenceScoreOutOf100,
+              "key_data": "e.g. $200K overrun or 10 days delay",
+              "mitigation": "Suggested action"
+            }}
+          ],
+          "summary": {{
+            "high": <int>,
+            "medium": <int>,
+            "low": <int>,
+            "budget_variance": "Amount Overrun/Underrun",
+            "schedule_variance": "Time delay",
+            "risk_score": <int>
+          }},
+          "timeline": [
+            {{
+              "task": "Phase Name",
+              "start": "YYYY-MM-DD",
+              "end": "YYYY-MM-DD",
+              "risk": "Risk Label"
+            }}
+          ]
+        }}
+''' )
+        
 
-### Target Document:
-{target_document_content}
-
-### Risks Document:
-{risks_document_content}
-
-### Retrieved Risk-Related Documents:
-{retrieved_docs_str}
-
-### Task:
-Analyze the target document and classify risks into the categories detailed in the risks document.
-
-Output the risk labels and a short explanation for each.
-
-Then summarize a mitigation plan.
-
-Finally, include a structured summary for UI rendering:
-
-### Risk Summary:
-- High Risks: <number>
-- Medium Risks: <number>
-- Low Risks: <number>
-- Budget Variance: <amount> Overrun or Underrun
-- Schedule Variance: <time delay>
-- Risk Score: <score>/100
-
-Mitigation Plan:'''
-
-        )
     
         chain = LLMChain(llm=llm, prompt=prompt_template)
-        risk_analysis = chain.run({
+        response = chain.run({
             "retrieved_docs_str": retrieved_docs_str,
             "risks_document_content": risks_content,
             "target_document_content": target_content
         })
+        
+        try:
+            result_json = json.loads(response.split("```json")[1].split("```")[0].strip())
+        except Exception as e:
+            print("Failed to parse JSON from model output:", e)
+            result_json = {}
+        
+        self.save_risk_analysis_to_file(response)  # Save full response
+        return result_json
     
         self.save_risk_analysis_to_file(risk_analysis)
         return risk_analysis
@@ -304,7 +331,6 @@ if st.button("Run Analysis"):
             )
 
             st.session_state["risk_result"] = rag.generate_risks_analysis_rag()
-import re
 
 def extract_risk_summary(text):
     summary = {
@@ -334,24 +360,42 @@ def extract_risk_summary(text):
 
 # === Render Analysis Results If Present ===
 if "risk_result" in st.session_state:
-    result = st.session_state["risk_result"]
-    st.success("✅ Analysis complete!")
-    st.markdown("### 📊 Risk Summary Panel")
+    result_data = st.session_state["risk_result"]
 
-    col1, col2, col3 = st.columns(3)
-    summary = extract_risk_summary(result)
-    col1.metric("🟥 High Risks", summary["high"] or "N/A")
-    col2.metric("🟧 Medium Risks", summary["medium"] or "N/A")
-    col3.metric("🟩 Low Risks", summary["low"] or "N/A")
-    
-    st.markdown(f"**📈 Budget Variance:** {summary['budget_variance'] or 'N/A'}")
-    st.markdown(f"**🕒 Schedule Variance:** {summary['schedule_variance'] or 'N/A'}")
-    
-    if summary['risk_score']:
-        st.progress(int(summary["risk_score"]) / 100)
-        st.markdown(f"**Risk Score:** {summary['risk_score']}/100")
+    if not result_data:
+        st.error("⚠️ Failed to parse risk analysis output.")
     else:
-        st.markdown("**Risk Score:** Not provided")
+        summary = result_data.get("summary", {})
+        risks = result_data.get("risks", [])
+        timeline_data = pd.DataFrame(result_data.get("timeline", []))
+
+        st.success("✅ Analysis complete!")
+        st.markdown("### 📊 Risk Summary Panel")
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("🟥 High Risks", summary.get("high", "N/A"))
+        col2.metric("🟧 Medium Risks", summary.get("medium", "N/A"))
+        col3.metric("🟩 Low Risks", summary.get("low", "N/A"))
+
+        st.markdown(f"**📈 Budget Variance:** {summary.get('budget_variance', 'N/A')}")
+        st.markdown(f"**🕒 Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
+
+        if summary.get("risk_score") is not None:
+            st.progress(int(summary["risk_score"]) / 100)
+            st.markdown(f"**Risk Score:** {summary['risk_score']}/100")
+
+        st.markdown("### 📋 Risk Explorer Panel")
+        for i, risk in enumerate(risks):
+            with st.expander(f"{risk['type']} **{risk['title']}** — {risk['severity']} Risk ({risk['confidence']}%)"):
+                st.markdown(f"**Key Insight:** {risk['key_data']}")
+                st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
+
+        if not timeline_data.empty:
+            st.markdown("### ⏱️ Timeline View")
+            import plotly.express as px
+            fig = px.timeline(timeline_data, x_start="start", x_end="end", y="task", color="risk")
+            st.plotly_chart(fig, use_container_width=True)
+
 
     st.markdown("### 📤 Export & Share")
     st.download_button("📄 Download as PDF", result, file_name="risk_analysis.pdf")
