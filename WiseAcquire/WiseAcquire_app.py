@@ -262,9 +262,10 @@ with col3:
         st.download_button("📝 Mock Target File", f, file_name="dataset_no_risks.csv", help="Target doc example")
     doc_labels = {
         "History Document": [],
-        "Risk Register": None,
-        "Target Procurement File": None,
+        "Risk Register": [],
+        "Target Procurement File": [],
     }
+
 query = st.text_input("What do you want to know?", "What are the risks associated with this procurement document?")
     
 uploaded_docs = {}
