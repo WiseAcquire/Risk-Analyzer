@@ -70,7 +70,6 @@ class RAGProcurementRisksAnalysis:
                                 content = f.read()
                         doc = LCDocument(page_content=content)
                         all_documents.append(doc)
-
                     else:
                         loader = UnstructuredLoader(file_path=file_path)
                         documents = loader.load()
@@ -78,9 +77,13 @@ class RAGProcurementRisksAnalysis:
                 except Exception as e:
                     print(f"⚠️ Could not load {file_path}: {e}")
         print(f"📄 Loaded {len(all_documents)} docs from {folder_path}")
-        if not self.historical_documents:
-            print("⚠️ No historical documents loaded!")
+        
+        # Fix here — use the local variable, not the class attribute
+        if not all_documents:
+            print(f"⚠️ No documents loaded from {folder_path}!")
+    
         return all_documents
+
 
     def create_embeddings(self):
         embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
