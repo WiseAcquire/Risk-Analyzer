@@ -216,11 +216,16 @@ class RAGProcurementRisksAnalysis:
         print("risks_document_content:", bool(risks_content))
         print("target_document_content:", bool(target_content))
 
-        response = chain.invoke({
-            "retrieved_docs_str": retrieved_docs_str,
-            "risks_document_content": risks_content,
-            "target_document_content": target_content
-        })
+        try:
+            response = chain.invoke({
+                "retrieved_docs_str": retrieved_docs_str,
+                "risks_document_content": risks_content,
+                "target_document_content": target_content
+            })
+        except ValueError as e:
+            st.error(f"❌ Chain input error: {e}")
+            print("❌ Chain input error:", e)
+            return "Error: Chain input validation failed."
                 
 
         try:
