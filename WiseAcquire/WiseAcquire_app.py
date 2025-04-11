@@ -66,27 +66,22 @@ class RAGProcurementRisksAnalysis:
         for ext in supported_exts:
             files = glob.glob(f"{folder_path}/*.{ext}")
             for file_path in files:
+                try:
+                    if file_path.endswith(".csv"):
                         try:
-                            if file_path.endswith(".csv"):
-                                try:
-                                    with open(file_path, "r", encoding="utf-8") as f:
-                                        content = f.read()
-                                except UnicodeDecodeError:
-                                    with open(file_path, "r", encoding="latin1") as f:
-                                        content = f.read()
-                                doc = LCDocument(page_content=content)
-                                all_documents.append(doc)
-                            else:
-                                loader = UnstructuredLoader(file_path=file_path)
-                                documents = loader.load()
-                                all_documents.extend(documents)
-                        except Exception as e:
-                            print(f"⚠️ Could not load {file_path}: {e}")
+                            with open(file_path, "r", encoding="utf-8") as f:
+                                content = f.read()
+                        except UnicodeDecodeError:
+                            with open(file_path, "r", encoding="latin1") as f:
+                                content = f.read()
+                        doc = LCDocument(page_content=content)
+                        all_documents.append(doc)
+                    else:
+                        loader = UnstructuredLoader(file_path=file_path)
+                        documents = loader.load()
+                        all_documents.extend(documents)
                 except Exception as e:
                     print(f"⚠️ Could not load {file_path}: {e}")
-        print(f"📄 Loaded {len(all_documents)} docs from {folder_path}")
-        if not all_documents:
-            print(f"⚠️ No documents loaded from {folder_path}!")
         return all_documents
 
     def create_embeddings(self):
