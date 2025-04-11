@@ -240,17 +240,31 @@ class RAGProcurementRisksAnalysis:
             st.error(f"❌ Chain input validation failed: {e}")
             return "Error: Invalid input keys"
         
+        # Clean up any rogue markdown and whitespace
         response_text = response_text.strip()
+        
+        # Remove markdown code block wrapping, if any
+        response_text = re.sub(r"^```(?:json)?", "", response_text, flags=re.MULTILINE)
+        response_text = re.sub(r"```$", "", response_text, flags=re.MULTILINE)
+        
+        # Re-strip to be safe
+        response_text = response_text.strip()
+        
+        # Extra step: Ensure it starts with a valid JSON object
         json_start = response_text.find('{')
-        response_text = response_text[json_start:]
-        response_text = re.sub(r"^```(?:json)?|```$", "", response_text.strip(), flags=re.MULTILINE)
+        if json_start != -1:
+            response_text = response_text[json_start:]
+       
+        print("📥 Cleaned LLM Output (first 500 chars):")
+        print(response_text[:500])
+
         
         try:
             result_json = json.loads(response_text)
-        except Exception as e:
-            st.error("❌ The model returned invalid JSON. Showing raw response for debugging.")
-            print("❌ Failed to parse JSON from model output:", e)
-            return response_text
+        except json.JSONDecodeError as e:
+            st.error("❌ Invalid JSON returned from the model.")
+            print("❌ JSON decode error:", e)
+            return response_text  # Show raw output in UI
 
 
 
