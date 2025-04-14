@@ -16,6 +16,7 @@ import io
 import json
 import glob
 from collections import Counter
+from collections import defaultdict
 from PIL import Image
 from pathlib import Path
 import pandas as pd
@@ -456,6 +457,10 @@ if "risk_result" in st.session_state:
     else:
         summary = result_data.get("summary", {})
         risks = result_data.get("risks", [])
+        grouped_risks = defaultdict(list)
+        for risk in risks:
+            grouped_risks[risk['severity'].lower()].append(risk)
+
         timeline_data = pd.DataFrame(result_data.get("timeline", []))
     
         st.success("✅ Analysis complete!")
@@ -469,12 +474,26 @@ if "risk_result" in st.session_state:
             """)
         st.markdown("### 📊 Risk Summary Panel")
     
-        col1, col2, col3 = st.columns(3)
-        # Recalculate summary from risk list to ensure consistency
+        # Group and count risks by severity
+        grouped_risks = defaultdict(list)
+        for risk in risks:
+            grouped_risks[risk['severity'].lower()].append(risk)
         risk_counts = Counter(risk['severity'].lower() for risk in risks)
-        col1.metric("🟥 High Risks", risk_counts.get("high", 0))
-        col2.metric("🟧 Medium Risks", risk_counts.get("medium", 0))
-        col3.metric("🟩 Low Risks", risk_counts.get("low", 0))
+        
+        # Create clickable summary panel with counts
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button(f"🟥 High Risks ({risk_counts.get('high', 0)})", key="go_high"):
+                st.session_state["jump_to"] = "high"
+        
+        with col2:
+            if st.button(f"🟧 Medium Risks ({risk_counts.get('medium', 0)})", key="go_medium"):
+                st.session_state["jump_to"] = "medium"
+        
+        with col3:
+            if st.button(f"🟩 Low Risks ({risk_counts.get('low', 0)})", key="go_low"):
+                st.session_state["jump_to"] = "low"
 
     
         st.markdown(f"📈 **Budget Variance:** {summary.get('budget_variance', 'N/A')}")
@@ -492,17 +511,49 @@ if "risk_result" in st.session_state:
                 st.markdown("Weighted based on the number, severity, and confidence of the detected risks.")
             
             
-        st.markdown("### 📋 Risk Explorer Panel")
-        for i, risk in enumerate(risks):
-            with st.expander(f"{risk['type']} **{risk['title']}** — {risk['severity']} Risk ({risk['confidence']}%)"):
-                st.markdown(f"**Key Insight:** {risk['key_data']}")
-                st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
-                st.markdown(
-                    f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
-                    💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
-                    unsafe_allow_html=True
-                )
+        if grouped_risks:
+            st.markdown("### 📋 Risk Explorer Panel")
+        
+            if st.session_state.get("jump_to") == "high":
+                st.markdown('<div id="high"></div>', unsafe_allow_html=True)
+            st.markdown("#### 🟥 High Risks")
+            for risk in grouped_risks["high"]:
+                with st.expander(f"{risk['type']} **{risk['title']}** — High Risk ({risk['confidence']}%)"):
+                    st.markdown(f"**Key Insight:** {risk['key_data']}")
+                    st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
+                    st.markdown(
+                        f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
+                        💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
+                        unsafe_allow_html=True
+                    )
 
+        
+            if st.session_state.get("jump_to") == "medium":
+                st.markdown('<div id="medium"></div>', unsafe_allow_html=True)
+            st.markdown("#### 🟧 Medium Risks")
+            for risk in grouped_risks["medium"]:
+                with st.expander(f"{risk['type']} **{risk['title']}** — Medium Risk ({risk['confidence']}%)"):
+                    st.markdown(f"**Key Insight:** {risk['key_data']}")
+                    st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
+                    st.markdown(
+                        f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
+                        💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
+                        unsafe_allow_html=True
+                    )
+
+        
+            if st.session_state.get("jump_to") == "low":
+                st.markdown('<div id="low"></div>', unsafe_allow_html=True)
+            st.markdown("#### 🟩 Low Risks")
+            for risk in grouped_risks["low"]:
+                with st.expander(f"{risk['type']} **{risk['title']}** — Low Risk ({risk['confidence']}%)"):
+                    st.markdown(f"**Key Insight:** {risk['key_data']}")
+                    st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
+                    st.markdown(
+                        f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
+                        💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
+                        unsafe_allow_html=True
+                    )
 
     
         if not timeline_data.empty:
