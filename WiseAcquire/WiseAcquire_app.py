@@ -334,13 +334,13 @@ col1, col2, col3 = st.columns(3)
 with col1:
     EXAMPLES_PATH = Path(__file__).resolve().parent.parent / "example_files"
     with open(EXAMPLES_PATH / "dataset1.csv", "rb") as f:
-        st.download_button("📄 Mock History  Doc", f, file_name="dataset1.csv", help="Historical doc example")
+        st.download_button("📄 Sample History  Doc", f, file_name="dataset1.csv", help="Historical doc example")
 with col2:
     with open(EXAMPLES_PATH / "risks.csv", "rb") as f:
-        st.download_button("📑 Mock Risk Register", f, file_name="risks.csv", help="Risk types to reference")
+        st.download_button("📑 Sample Risk Register", f, file_name="risks.csv", help="Risk types to reference")
 with col3:
     with open(EXAMPLES_PATH / "dataset_no_risks.csv", "rb") as f:
-        st.download_button("📝 Mock Target File", f, file_name="dataset_no_risks.csv", help="Target doc example")
+        st.download_button("📝 Sample Target File", f, file_name="dataset_no_risks.csv", help="Target doc example")
     doc_labels = {
         "History Document": [],
         "Risk Register": [],
