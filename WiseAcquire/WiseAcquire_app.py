@@ -156,73 +156,12 @@ class RAGProcurementRisksAnalysis:
     
         prompt_template = PromptTemplate(
             input_variables=["retrieved_docs_str", "risks_document_content", "target_document_content"],
-            template='''
-        Strictly follow these instructions:
-        - DO NOT add any explanation or text outside the JSON.
-        - Output must be valid JSON only.
-        - Do not wrap in markdown or triple backticks.
-        
-        You are a procurement risk assessment AI. Evaluate the risks associated with the target document
-        based on the retrieved knowledge and the risks detailed in the risks document.
-        
-        ### Target Document:
-        {target_document_content}
-        
-        ### Risks Document:
-        {risks_document_content}
-        
-        ### Retrieved Risk-Related Documents:
-        {retrieved_docs_str}
-        
-        ### Task:
-        Analyze the target document and classify risks into the categories detailed in the risks document.
-        
-        Then respond in the following JSON format (strictly this structure):
-        
-        You must ONLY return a valid JSON object. Do NOT include any text before or after the JSON block. No explanations. Only return this exact structure:
-        Respond ONLY in valid JSON.
-        
-        DO NOT wrap in triple backticks.
-        DO NOT add commentary.
-        
-        Your output must begin with `{` and follow EXACTLY this format:
-        {
-          "risks": [...],
-          "summary": {...},
-          "timeline": [...]
-        }
-        
-        {
-          "risks": [
-            {
-              "title": "Short descriptive title",
-              "type": "Category (e.g., Cost, Schedule)",
-              "severity": "High/Medium/Low",
-              "confidence": ConfidenceScoreOutOf100,
-              "key_data": "e.g. $200K overrun or 10 days delay",
-              "mitigation": "Suggested action"
-            }
-          ],
-          "summary": {
-            "high": <int>,
-            "medium": <int>,
-            "low": <int>,
-            "budget_variance": "Amount Overrun/Underrun",
-            "schedule_variance": "Time delay",
-            "risk_score": <int>
-          },
-          "timeline": [
-            {
-              "task": "Phase Name",
-              "start": "YYYY-MM-DD",
-              "end": "YYYY-MM-DD",
-              "risk": "Risk Label"
-            }
-          ]
-        }
-'''
-)
-
+            template="""
+        Retrieved: {retrieved_docs_str}
+        Risks: {risks_document_content}
+        Target: {target_document_content}
+        """
+        )
         
 
     
