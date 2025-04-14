@@ -468,21 +468,12 @@ if "risk_result" in st.session_state:
         with st.expander("📘 What is this?"):
             st.markdown("Based on difference between planned and actual milestone dates.")
 
-        st.markdown(f"🎯 **Risk Score:** {summary.get('risk_score', 'N/A')}/100")
-        with st.expander("📘 What is this?"):
-            st.markdown("Weighted based on the number, severity, and confidence of the detected risks.")
-                     
         if summary.get("risk_score") is not None:
             st.progress(int(summary["risk_score"]) / 100)
-            st.markdown(f"**Risk Score:** {summary['risk_score']}/100")
+            st.markdown(f"🎯 **Risk Score:** {summary.get('risk_score', 'N/A')}/100")
+            with st.expander("📘 What is this?"):
+                st.markdown("Weighted based on the number, severity, and confidence of the detected risks.")
             
-        
-        with st.expander("ℹ️ Why results may vary between runs"):
-            st.markdown("""
-            - **Model reasoning can vary slightly** even with the same data due to LLM stochasticity.
-            - **Document formatting or phrasing** can impact what the model extracts or emphasizes.
-            - **Risk scores** are based on extracted insights + patterns found in historical docs (via RAG), which may change if more docs are uploaded or retrieved differently.
-            """)
             
         st.markdown("### 📋 Risk Explorer Panel")
         for i, risk in enumerate(risks):
