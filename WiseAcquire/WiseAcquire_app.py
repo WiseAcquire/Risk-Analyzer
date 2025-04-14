@@ -486,7 +486,7 @@ if "risk_result" in st.session_state:
         with col1:
             st.markdown("**🟥 High Risks**")
             st.markdown(f"### {risk_counts.get('high', 0)}")
-            if st.button("View High Risks", key="go_high"):
+            if st.button("View High Risks", key="https://maestro-risk.streamlit.app/~/+/#18e3a01d"):
                 st.session_state["jump_to"] = "high"
         
         with col2:
