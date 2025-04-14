@@ -304,10 +304,10 @@ def preview_file(file, file_type, name="Uploaded file"):
 EXAMPLES_PATH = Path(__file__).resolve().parent.parent / "example_files"
 st.set_page_config(page_title="Maestro", layout="centered")
 # Load and display logo
-logo_path = (EXAMPLES_PATH / "maestro.png", "rb")   # Adjust path if needed
-if os.path.exists(logo_path):
+logo_path = EXAMPLES_PATH / "maestro.png"
+if logo_path.exists():
     logo = Image.open(logo_path)
-    st.image(logo, width=150)  # You can adjust the width
+    st.image(logo, width=150)
 
 st.title("Maestro")
 
