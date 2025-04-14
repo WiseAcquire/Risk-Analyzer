@@ -313,7 +313,8 @@ with col_logo:
         st.image(logo, width=100)  # Optional: reduce width for balance
 
 with col_title:
-    st.markdown("## Maestro")  # Use markdown for tighter vertical spacing
+    st.markdown("<h1 style='margin-bottom: 0;'>Maestro</h1>", unsafe_allow_html=True)
+
 
 
 st.sidebar.title("ℹ️ About")
