@@ -452,13 +452,26 @@ if "risk_result" in st.session_state:
         col2.metric("🟧 Medium Risks", summary.get("medium", "N/A"))
         col3.metric("🟩 Low Risks", summary.get("low", "N/A"))
     
-        st.markdown(f"**📈 Budget Variance:** {summary.get('budget_variance', 'N/A')}")
-        st.markdown(f"**🕒 Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
-    
+        col4, col5 = st.columns([1, 1])
+        with col4:
+            st.markdown(f"**📈 Budget Variance:** {summary.get('budget_variance', 'N/A')}")
+            st.caption("🛈 Based on difference between estimated and actual costs extracted from the procurement doc.")
+        with col5:
+            st.markdown(f"**🕒 Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
+            st.caption("🛈 Based on milestone dates found in the document. May vary if extraction or phrasing changes.")
+
         if summary.get("risk_score") is not None:
             st.progress(int(summary["risk_score"]) / 100)
             st.markdown(f"**Risk Score:** {summary['risk_score']}/100")
-    
+            st.caption("🛈 Weighted by the number and severity of identified risks. May vary due to language or document structure.")
+        
+        with st.expander("ℹ️ Why results may vary between runs"):
+            st.markdown("""
+            - **Model reasoning can vary slightly** even with the same data due to LLM stochasticity.
+            - **Document formatting or phrasing** can impact what the model extracts or emphasizes.
+            - **Risk scores** are based on extracted insights + patterns found in historical docs (via RAG), which may change if more docs are uploaded or retrieved differently.
+            """)
+            
         st.markdown("### 📋 Risk Explorer Panel")
         for i, risk in enumerate(risks):
             with st.expander(f"{risk['type']} **{risk['title']}** — {risk['severity']} Risk ({risk['confidence']}%)"):
