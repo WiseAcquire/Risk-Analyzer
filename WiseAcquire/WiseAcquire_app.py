@@ -157,11 +157,53 @@ class RAGProcurementRisksAnalysis:
         prompt_template = PromptTemplate(
             input_variables=["retrieved_docs_str", "risks_document_content", "target_document_content"],
             template="""
-        Retrieved: {retrieved_docs_str}
-        Risks: {risks_document_content}
-        Target: {target_document_content}
+        You are an AI risk analyst reviewing procurement documentation.
+        
+        Analyze the risks based on the documents below.
+        
+        Retrieved Content:
+        {retrieved_docs_str}
+        
+        Risks Document:
+        {risks_document_content}
+        
+        Target Procurement Document:
+        {target_document_content}
+        
+        Respond ONLY in JSON using this structure:
+        {{
+          "summary": {{
+            "high": "int",
+            "medium": "int",
+            "low": "int",
+            "budget_variance": "string",
+            "schedule_variance": "string",
+            "risk_score": "int"
+          }},
+          "risks": [
+            {{
+              "type": "string",
+              "title": "string",
+              "severity": "string",
+              "confidence": "int",
+              "key_data": "string",
+              "mitigation": "string"
+            }}
+          ],
+          "timeline": [
+            {{
+              "task": "string",
+              "start": "YYYY-MM-DD",
+              "end": "YYYY-MM-DD",
+              "risk": "string"
+            }}
+          ]
+        }}
+        
+        Make sure the response is **valid JSON only**. Do not include any explanatory text or markdown.
         """
         )
+
         
 
     
@@ -210,10 +252,16 @@ class RAGProcurementRisksAnalysis:
             try:
                 result_json = json.loads(response_text)
             except json.JSONDecodeError as e:
-                st.error("❌ Failed to parse JSON from model output.")
+                st.warning("⚠️ Model response was not valid JSON. Showing raw response instead.")
                 print("⚠️ JSONDecodeError:", e)
                 print("🧾 Raw cleaned output:\n", response_text[:1000])
-                return response_text
+                st.session_state["raw_response_text"] = response_text
+                return {
+                    "summary": {},
+                    "risks": [],
+                    "timeline": []
+                }, response_text
+
             
             # 5. Validate required keys
             required_keys = {"risks", "summary", "timeline"}
