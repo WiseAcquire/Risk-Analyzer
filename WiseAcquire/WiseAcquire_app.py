@@ -225,7 +225,9 @@ class RAGProcurementRisksAnalysis:
             
             # 6. Save & return
             self.save_risk_analysis_to_file(json.dumps(result_json, indent=2))
-            return result_json
+            st.session_state["raw_response_text"] = response_text
+            return result_json, response_text
+
             
         except Exception as e:
             st.error("❌ An unexpected error occurred while generating the risk analysis.")
@@ -395,6 +397,8 @@ if "risk_result" in st.session_state:
         timeline_data = pd.DataFrame(result_data.get("timeline", []))
     
         st.success("✅ Analysis complete!")
+        st.session_state["risk_result"], st.session_state["raw_response_text"] = rag.generate_risks_analysis_rag()
+        st.text_area("🧾 Full Raw Output from LLM", st.session_state.get("raw_response_text", "")[:3000])
         st.markdown("### 📊 Risk Summary Panel")
     
         col1, col2, col3 = st.columns(3)
