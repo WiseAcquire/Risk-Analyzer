@@ -536,7 +536,7 @@ if "risk_result" in st.session_state:
                     )
         
         # Render the rest normally (but skip the one already shown)
-        for severity, label, emoji in [("high", "🟥 High Risks"), ("medium", "🟧 Medium Risks"), ("low", "🟩 Low Risks")]:
+        for severity, label in [("high", "🟥 High Risks"), ("medium", "🟧 Medium Risks"), ("low", "🟩 Low Risks")]:
             if severity == jump:
                 continue
             st.markdown(f"#### {label}")
