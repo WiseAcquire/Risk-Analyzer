@@ -154,16 +154,14 @@ class RAGProcurementRisksAnalysis:
         print(target_content[:500])
 
     
-        prompt_template = PromptTemplate.from_template('''
-        Strictly follow these instructions:
-        - DO NOT add any explanation or text outside the JSON.
+        prompt_template = PromptTemplate(
             input_variables=["retrieved_docs_str", "risks_document_content", "target_document_content"],
             template='''
         Strictly follow these instructions:
         - DO NOT add any explanation or text outside the JSON.
         - Output must be valid JSON only.
         - Do not wrap in markdown or triple backticks.
-
+        
         You are a procurement risk assessment AI. Evaluate the risks associated with the target document
         based on the retrieved knowledge and the risks detailed in the risks document.
         
@@ -183,7 +181,7 @@ class RAGProcurementRisksAnalysis:
         
         You must ONLY return a valid JSON object. Do NOT include any text before or after the JSON block. No explanations. Only return this exact structure:
         Respond ONLY in valid JSON.
-
+        
         DO NOT wrap in triple backticks.
         DO NOT add commentary.
         
@@ -193,7 +191,7 @@ class RAGProcurementRisksAnalysis:
           "summary": {...},
           "timeline": [...]
         }
-
+        
         {
           "risks": [
             {
@@ -222,7 +220,9 @@ class RAGProcurementRisksAnalysis:
             }
           ]
         }
-''')
+'''
+)
+
         
 
     
