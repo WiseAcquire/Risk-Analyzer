@@ -445,6 +445,14 @@ if "risk_result" in st.session_state:
         timeline_data = pd.DataFrame(result_data.get("timeline", []))
     
         st.success("✅ Analysis complete!")
+        with st.expander("ℹ️ Disclaimer: How the Model Calculates Risk Summary"):
+            st.markdown("""
+            - **Budget Variance**: Derived from language about estimated vs. actual cost figures.
+            - **Schedule Variance**: Extracted from milestone or timeline language (e.g., "planned vs actual").
+            - **Risk Score**: Calculated as a weighted count of all risks based on severity and confidence levels.
+            - **Risk Categories**: The model classifies risks using LLM-based interpretation of key terms (e.g., 'delays', 'overruns', 'scope creep').
+            - **Re-run variation**: Minor differences in phrasing, formatting, or retrieved docs may lead to different outputs.
+            """)
         st.markdown("### 📊 Risk Summary Panel")
     
         col1, col2, col3 = st.columns(3)
@@ -486,14 +494,7 @@ if "risk_result" in st.session_state:
                     💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
                     unsafe_allow_html=True
                 )
-        with st.expander("ℹ️ How the Model Calculates Risk Summary"):
-            st.markdown("""
-            - **Budget Variance**: Derived from language about estimated vs. actual cost figures.
-            - **Schedule Variance**: Extracted from milestone or timeline language (e.g., "planned vs actual").
-            - **Risk Score**: Calculated as a weighted count of all risks based on severity and confidence levels.
-            - **Risk Categories**: The model classifies risks using LLM-based interpretation of key terms (e.g., 'delays', 'overruns', 'scope creep').
-            - **Re-run variation**: Minor differences in phrasing, formatting, or retrieved docs may lead to different outputs.
-            """)
+
 
     
         if not timeline_data.empty:
