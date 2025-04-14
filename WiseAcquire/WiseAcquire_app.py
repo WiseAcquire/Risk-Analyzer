@@ -305,11 +305,16 @@ EXAMPLES_PATH = Path(__file__).resolve().parent.parent / "example_files"
 st.set_page_config(page_title="Maestro", layout="centered")
 # Load and display logo
 logo_path = EXAMPLES_PATH / "maestro.png"
-if logo_path.exists():
-    logo = Image.open(logo_path)
-    st.image(logo, width=150)
+col_logo, col_title = st.columns([1, 4])  # Adjust width ratio if needed
 
-st.title("Maestro")
+with col_logo:
+    if logo_path.exists():
+        logo = Image.open(logo_path)
+        st.image(logo, width=100)  # Optional: reduce width for balance
+
+with col_title:
+    st.markdown("## Maestro")  # Use markdown for tighter vertical spacing
+
 
 st.sidebar.title("ℹ️ About")
 st.sidebar.info('''
