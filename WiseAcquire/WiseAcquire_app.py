@@ -302,7 +302,7 @@ def preview_file(file, file_type, name="Uploaded file"):
 
 # STEP 6: Streamlit UI Setup
 EXAMPLES_PATH = Path(__file__).resolve().parent.parent / "example_files"
-st.set_page_config(page_title="Maestro", layout="centered")
+st.set_page_config(page_title="MAESTRO", layout="centered")
 # Load and display logo
 logo_path = EXAMPLES_PATH / "maestro.png"
 col_logo, col_title = st.columns([1, 4])  # Adjust width ratio if needed
@@ -313,7 +313,7 @@ with col_logo:
         st.image(logo, width=100)  # Optional: reduce width for balance
 
 with col_title:
-    st.markdown("<h1 style='margin-bottom: 0;'>Maestro</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='margin-bottom: 0;'>MAESTRO</h1>", unsafe_allow_html=True)
 
 
 
