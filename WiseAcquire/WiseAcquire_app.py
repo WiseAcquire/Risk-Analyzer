@@ -452,30 +452,28 @@ if "risk_result" in st.session_state:
         col2.metric("🟧 Medium Risks", summary.get("medium", "N/A"))
         col3.metric("🟩 Low Risks", summary.get("low", "N/A"))
     
-        col4, col5 = st.columns([1, 1])
-        with col4:
-            st.markdown(
-                f"""<span title="Difference between estimated and actual costs extracted from the document.">
-                📈 <b>Budget Variance:</b> {summary.get('budget_variance', 'N/A')}</span>""",
-                unsafe_allow_html=True
-            )
-            st.markdown(f"**📈 Budget Variance:** {summary.get('budget_variance', 'N/A')}")
-        with col5:
-            st.markdown(
-                f"""<span title="Calculated from planned vs. actual milestone dates in the document.">
-                🕒 <b>Schedule Variance:</b> {summary.get('schedule_variance', 'N/A')}</span>""",
-                unsafe_allow_html=True
-            )
-            st.markdown(f"**🕒 Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
-            
+        st.markdown(
+            f"""<div title="Calculated as the difference between projected and actual costs in the document.">
+            📈 <b>Budget Variance:</b> {summary.get('budget_variance', 'N/A')}</div>""",
+            unsafe_allow_html=True
+        )
+        
+        st.markdown(
+            f"""<div title="Derived from the delay between planned and actual milestone dates.">
+            🕒 <b>Schedule Variance:</b> {summary.get('schedule_variance', 'N/A')}</div>""",
+            unsafe_allow_html=True
+        )
+        
+        st.markdown(
+            f"""<div title="Weighted score based on number of risks and their severities.">
+            🎯 <b>Risk Score:</b> {summary.get('risk_score', 'N/A')}/100</div>""",
+            unsafe_allow_html=True
+        )
+             
         if summary.get("risk_score") is not None:
             st.progress(int(summary["risk_score"]) / 100)
             st.markdown(f"**Risk Score:** {summary['risk_score']}/100")
-            st.markdown(
-                f"""<span title="Weighted score based on risk severity and frequency, 0–100 scale.">
-                🎯 <b>Risk Score:</b> {summary.get('risk_score', 'N/A')}/100</span>""",
-                unsafe_allow_html=True
-            )
+            
         
         with st.expander("ℹ️ Why results may vary between runs"):
             st.markdown("""
@@ -489,6 +487,20 @@ if "risk_result" in st.session_state:
             with st.expander(f"{risk['type']} **{risk['title']}** — {risk['severity']} Risk ({risk['confidence']}%)"):
                 st.markdown(f"**Key Insight:** {risk['key_data']}")
                 st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
+                st.markdown(
+                    f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
+                    💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
+                    unsafe_allow_html=True
+                )
+        with st.expander("ℹ️ How the Model Calculates Risk Summary"):
+            st.markdown("""
+            - **Budget Variance**: Derived from language about estimated vs. actual cost figures.
+            - **Schedule Variance**: Extracted from milestone or timeline language (e.g., "planned vs actual").
+            - **Risk Score**: Calculated as a weighted count of all risks based on severity and confidence levels.
+            - **Risk Categories**: The model classifies risks using LLM-based interpretation of key terms (e.g., 'delays', 'overruns', 'scope creep').
+            - **Re-run variation**: Minor differences in phrasing, formatting, or retrieved docs may lead to different outputs.
+            """)
+
     
         if not timeline_data.empty:
             st.markdown("### ⏱️ Timeline View")
