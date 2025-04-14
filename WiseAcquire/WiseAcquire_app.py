@@ -300,9 +300,15 @@ def preview_file(file, file_type, name="Uploaded file"):
         st.text_area("DOCX Preview", text[:2000], height=200)
 
 # STEP 6: Streamlit UI Setup
-st.set_page_config(page_title="WiseAcquire's Risk Analyzer", layout="centered")
+EXAMPLES_PATH = Path(__file__).resolve().parent.parent / "example_files"
+st.set_page_config(page_title="Maestro", layout="centered")
+# Load and display logo
+logo_path = (EXAMPLES_PATH / "maestro.png", "rb")   # Adjust path if needed
+if os.path.exists(logo_path):
+    logo = Image.open(logo_path)
+    st.image(logo, width=150)  # You can adjust the width
 
-st.title("WiseAcquire's Risk Analyzer")
+st.title("Maestro")
 
 st.sidebar.title("ℹ️ About")
 st.sidebar.info('''
