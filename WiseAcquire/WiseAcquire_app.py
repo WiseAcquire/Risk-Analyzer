@@ -452,24 +452,18 @@ if "risk_result" in st.session_state:
         col2.metric("🟧 Medium Risks", summary.get("medium", "N/A"))
         col3.metric("🟩 Low Risks", summary.get("low", "N/A"))
     
-        st.markdown(
-            f"""<div title="Calculated as the difference between projected and actual costs in the document.">
-            📈 <b>Budget Variance:</b> {summary.get('budget_variance', 'N/A')}</div>""",
-            unsafe_allow_html=True
-        )
-        
-        st.markdown(
-            f"""<div title="Derived from the delay between planned and actual milestone dates.">
-            🕒 <b>Schedule Variance:</b> {summary.get('schedule_variance', 'N/A')}</div>""",
-            unsafe_allow_html=True
-        )
-        
-        st.markdown(
-            f"""<div title="Weighted score based on number of risks and their severities.">
-            🎯 <b>Risk Score:</b> {summary.get('risk_score', 'N/A')}/100</div>""",
-            unsafe_allow_html=True
-        )
-             
+        st.markdown(f"📈 **Budget Variance:** {summary.get('budget_variance', 'N/A')}")
+        with st.expander("📘 What is this?"):
+            st.markdown("This is the difference between estimated and actual costs found in your procurement document.")
+
+        st.markdown(f"🕒 **Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
+        with st.expander("📘 What is this?"):
+            st.markdown("Based on difference between planned and actual milestone dates.")
+
+        st.markdown(f"🎯 **Risk Score:** {summary.get('risk_score', 'N/A')}/100")
+        with st.expander("📘 What is this?"):
+            st.markdown("Weighted based on the number, severity, and confidence of the detected risks.")
+                     
         if summary.get("risk_score") is not None:
             st.progress(int(summary["risk_score"]) / 100)
             st.markdown(f"**Risk Score:** {summary['risk_score']}/100")
