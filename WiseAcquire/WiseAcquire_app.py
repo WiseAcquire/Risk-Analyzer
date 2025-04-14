@@ -15,6 +15,7 @@ import re
 import io
 import json
 import glob
+from PIL import Image
 from pathlib import Path
 import pandas as pd
 import streamlit as st
