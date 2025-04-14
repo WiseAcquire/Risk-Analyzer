@@ -446,7 +446,6 @@ if "risk_result" in st.session_state:
         timeline_data = pd.DataFrame(result_data.get("timeline", []))
     
         st.success("✅ Analysis complete!")
-        st.text_area("🧾 Full Raw Output from LLM", st.session_state.get("raw_response_text", "")[:3000])
         st.markdown("### 📊 Risk Summary Panel")
     
         col1, col2, col3 = st.columns(3)
