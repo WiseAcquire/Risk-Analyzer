@@ -15,6 +15,7 @@ import re
 import io
 import json
 import glob
+from collections import Counter
 from PIL import Image
 from pathlib import Path
 import pandas as pd
@@ -174,9 +175,9 @@ class RAGProcurementRisksAnalysis:
         Respond ONLY in JSON using this structure:
         {{
           "summary": {{
-            "high": "int",
-            "medium": "int",
-            "low": "int",
+            "high": number of risks with "severity": "High",
+            "medium": number of risks with "severity": "Medium",
+            "low": number of risks with "severity": "Low",
             "budget_variance": "string",
             "schedule_variance": "string",
             "risk_score": "int"
@@ -185,7 +186,7 @@ class RAGProcurementRisksAnalysis:
             {{
               "type": "string",
               "title": "string",
-              "severity": "string",
+              "severity": "High" | "Medium" | "Low",
               "confidence": "int",
               "key_data": "string",
               "mitigation": "string"
@@ -469,9 +470,12 @@ if "risk_result" in st.session_state:
         st.markdown("### 📊 Risk Summary Panel")
     
         col1, col2, col3 = st.columns(3)
-        col1.metric("🟥 High Risks", summary.get("high", "N/A"))
-        col2.metric("🟧 Medium Risks", summary.get("medium", "N/A"))
-        col3.metric("🟩 Low Risks", summary.get("low", "N/A"))
+        # Recalculate summary from risk list to ensure consistency
+        risk_counts = Counter(risk['severity'].lower() for risk in risks)
+        col1.metric("🟥 High Risks", risk_counts.get("high", 0))
+        col2.metric("🟧 Medium Risks", risk_counts.get("medium", 0))
+        col3.metric("🟩 Low Risks", risk_counts.get("low", 0))
+
     
         st.markdown(f"📈 **Budget Variance:** {summary.get('budget_variance', 'N/A')}")
         with st.expander("📘 What is this?"):
