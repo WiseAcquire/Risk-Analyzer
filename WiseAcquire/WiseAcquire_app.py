@@ -522,44 +522,44 @@ if "risk_result" in st.session_state:
         
             if st.session_state.get("jump_to") == "high":
                 st.markdown('<div id="high"></div>', unsafe_allow_html=True)
-                st.markdown("#### 🟥 High Risks")
-                for risk in grouped_risks["high"]:
-                    with st.expander(f"{risk['type']} **{risk['title']}** — High Risk ({risk['confidence']}%)"):
-                        st.markdown(f"**Key Insight:** {risk['key_data']}")
-                        st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
-                        st.markdown(
-                            f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
-                            💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
-                            unsafe_allow_html=True
-                        )
+            st.markdown("#### 🟥 High Risks")
+            for risk in grouped_risks["high"]:
+                with st.expander(f"{risk['type']} **{risk['title']}** — High Risk ({risk['confidence']}%)"):
+                    st.markdown(f"**Key Insight:** {risk['key_data']}")
+                    st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
+                    st.markdown(
+                        f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
+                        💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
+                        unsafe_allow_html=True
+                    )
 
         
             if st.session_state.get("jump_to") == "medium":
                 st.markdown('<div id="medium"></div>', unsafe_allow_html=True)
-                st.markdown("#### 🟧 Medium Risks")
-                for risk in grouped_risks["medium"]:
-                    with st.expander(f"{risk['type']} **{risk['title']}** — Medium Risk ({risk['confidence']}%)"):
-                        st.markdown(f"**Key Insight:** {risk['key_data']}")
-                        st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
-                        st.markdown(
-                            f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
-                            💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
-                            unsafe_allow_html=True
-                        )
+            st.markdown("#### 🟧 Medium Risks")
+            for risk in grouped_risks["medium"]:
+                with st.expander(f"{risk['type']} **{risk['title']}** — Medium Risk ({risk['confidence']}%)"):
+                    st.markdown(f"**Key Insight:** {risk['key_data']}")
+                    st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
+                    st.markdown(
+                        f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
+                        💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
+                        unsafe_allow_html=True
+                    )
 
         
             if st.session_state.get("jump_to") == "low":
                 st.markdown('<div id="low"></div>', unsafe_allow_html=True)
-                st.markdown("#### 🟩 Low Risks")
-                for risk in grouped_risks["low"]:
-                    with st.expander(f"{risk['type']} **{risk['title']}** — Low Risk ({risk['confidence']}%)"):
-                        st.markdown(f"**Key Insight:** {risk['key_data']}")
-                        st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
-                        st.markdown(
-                            f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
-                            💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
-                            unsafe_allow_html=True
-                        )
+            st.markdown("#### 🟩 Low Risks")
+            for risk in grouped_risks["low"]:
+                with st.expander(f"{risk['type']} **{risk['title']}** — Low Risk ({risk['confidence']}%)"):
+                    st.markdown(f"**Key Insight:** {risk['key_data']}")
+                    st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
+                    st.markdown(
+                        f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
+                        💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
+                        unsafe_allow_html=True
+                    )
 
     
         if not timeline_data.empty:
