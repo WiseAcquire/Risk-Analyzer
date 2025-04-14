@@ -454,16 +454,28 @@ if "risk_result" in st.session_state:
     
         col4, col5 = st.columns([1, 1])
         with col4:
+            st.markdown(
+                f"""<span title="Difference between estimated and actual costs extracted from the document.">
+                📈 <b>Budget Variance:</b> {summary.get('budget_variance', 'N/A')}</span>""",
+                unsafe_allow_html=True
+            )
             st.markdown(f"**📈 Budget Variance:** {summary.get('budget_variance', 'N/A')}")
-            st.caption("🛈 Based on difference between estimated and actual costs extracted from the procurement doc.")
         with col5:
+            st.markdown(
+                f"""<span title="Calculated from planned vs. actual milestone dates in the document.">
+                🕒 <b>Schedule Variance:</b> {summary.get('schedule_variance', 'N/A')}</span>""",
+                unsafe_allow_html=True
+            )
             st.markdown(f"**🕒 Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
-            st.caption("🛈 Based on milestone dates found in the document. May vary if extraction or phrasing changes.")
-
+            
         if summary.get("risk_score") is not None:
             st.progress(int(summary["risk_score"]) / 100)
             st.markdown(f"**Risk Score:** {summary['risk_score']}/100")
-            st.caption("🛈 Weighted by the number and severity of identified risks. May vary due to language or document structure.")
+            st.markdown(
+                f"""<span title="Weighted score based on risk severity and frequency, 0–100 scale.">
+                🎯 <b>Risk Score:</b> {summary.get('risk_score', 'N/A')}/100</span>""",
+                unsafe_allow_html=True
+            )
         
         with st.expander("ℹ️ Why results may vary between runs"):
             st.markdown("""
