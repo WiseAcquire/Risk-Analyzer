@@ -384,7 +384,9 @@ def extract_risk_summary(text):
 # === Render Analysis Results If Present ===
 if "risk_result" in st.session_state:
     result_data = st.session_state.get("risk_result", {})
-    st.text_area("🧾 Full Raw Output from LLM", response_text[:3000])
+    raw_output = st.session_state.get("raw_response_text", "")
+    st.text_area("🧾 Full Raw Output from LLM", raw_output[:3000])
+
     if not isinstance(result_data, dict) or "risks" not in result_data:
         st.error("⚠️ The model did not return a structured JSON output. Please try again or check the LLM output formatting.")
         st.markdown("### 🔍 Raw Output")
