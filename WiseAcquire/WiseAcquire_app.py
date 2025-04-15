@@ -539,16 +539,26 @@ if "risk_result" in st.session_state:
     
     with col_right:
         score = summary.get("risk_score", 0)
+        
+        # Risk Score Title + Progress Bar
         st.markdown(f"🎯 **Overall Risk Level:** {score}/100")
         st.progress(score / 100)
     
-        if score >= 75:
-            st.markdown('<div style="background-color:#ffecec; padding: 0.5rem 1rem; border-radius: 10px;"><span style="color: red; font-weight: bold;">🔴 High Risk Level</span></div>', unsafe_allow_html=True)
-        elif score >= 40:
-            st.markdown('<div style="background-color:#fff9e6; padding: 0.5rem 1rem; border-radius: 10px;"><span style="color: #e69500; font-weight: bold;">🟠 Moderate Risk Level</span></div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div style="background-color:#e6f9ec; padding: 0.5rem 1rem; border-radius: 10px;"><span style="color: #2e8b57; font-weight: bold;">🟢 Low Risk Level</span></div>', unsafe_allow_html=True)
+        # Add vertical spacing before badge
+        st.markdown("<div style='margin-top: 0.5rem'></div>", unsafe_allow_html=True)
     
+        # Risk Level Label with Padding
+        if score >= 75:
+            st.markdown('<div style="background-color:#ffecec; padding: 0.75rem 1rem; border-radius: 10px; font-size: 1rem;"><span style="color: red; font-weight: bold;">🔴 High Risk Level</span></div>', unsafe_allow_html=True)
+        elif score >= 40:
+            st.markdown('<div style="background-color:#fff9e6; padding: 0.75rem 1rem; border-radius: 10px; font-size: 1rem;"><span style="color: #e69500; font-weight: bold;">🟠 Moderate Risk Level</span></div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="background-color:#e6f9ec; padding: 0.75rem 1rem; border-radius: 10px; font-size: 1rem;"><span style="color: #2e8b57; font-weight: bold;">🟢 Low Risk Level</span></div>', unsafe_allow_html=True)
+    
+        # Add space before expander
+        st.markdown("<div style='margin-top: 0.5rem'></div>", unsafe_allow_html=True)
+    
+        # Risk Score Breakdown
         with st.expander("🧠 Risk Score Calculation Breakdown"):
             st.markdown(f"- **Total Weighted Score:** `{total_score:.2f}`")
             st.markdown(f"- **Max Possible Score:** `{max_score}`")
