@@ -513,13 +513,18 @@ if "risk_result" in st.session_state:
                     )
 
         # Extract timeline safely
+        # Extract timeline safely
         timeline_data = pd.DataFrame(result_data.get("timeline", []))
-    
+        
+        # Only render if there is timeline data
         if not timeline_data.empty:
-        st.markdown("### ⏱️ Timeline View")
-        import plotly.express as px
-        fig = px.timeline(timeline_data, x_start="start", x_end="end", y="task", color="risk")
-        st.plotly_chart(fig, use_container_width=True)
+            st.markdown("### ⏱️ Timeline View")
+            with st.expander("View Project Timeline"):
+                import plotly.express as px
+                fig = px.timeline(timeline_data, x_start="start", x_end="end", y="task", color="risk")
+                fig.update_yaxes(autorange="reversed")  # Tasks from top to bottom
+                st.plotly_chart(fig, use_container_width=True)
+
 
     st.markdown("### 📤 Export & Share")
     if isinstance(result_data, dict):
