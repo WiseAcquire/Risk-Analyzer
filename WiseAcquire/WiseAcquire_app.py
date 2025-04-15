@@ -462,14 +462,14 @@ if "risk_result" in st.session_state:
         summary = result_data.get("summary", {})
         risks = result_data.get("risks", [])
         # ✅ Risk Score Calculation (confidence floor + weighted severity)
-        weights = {"high": 3, "medium": 2, "low": 1}
+        weights = {"high": 10, "medium": 5, "low": 1}
         total_score = 0
         max_score = 0
         
         for risk in risks:
             severity = risk["severity"].lower()
             raw_confidence = risk.get("confidence", 100)
-            confidence = max(raw_confidence, 50)  # Floor confidence to 50%
+            confidence = raw_confidence
         
             weight = weights.get(severity, 0)
             score_contribution = weight * (confidence / 100)
