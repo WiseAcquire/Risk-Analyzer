@@ -179,9 +179,18 @@ class RAGProcurementRisksAnalysis:
             "high": number of risks with "severity": "High",
             "medium": number of risks with "severity": "Medium",
             "low": number of risks with "severity": "Low",
-            "budget_variance": "string",
-            "schedule_variance": "string",
-            "risk_score": "int"
+            "budget_variance": {
+              "value": "string",
+              "justification": "string"
+            },
+            "schedule_variance": {
+              "value": "string",
+              "justification": "string"
+            },
+            "risk_score": {
+              "value": "int",
+              "justification": "string"
+            }
           }},
           "risks": [
             {{
@@ -475,13 +484,40 @@ if "risk_result" in st.session_state:
         summary_cols[2].metric("🟩 Low Risks", risk_counts.get("low", 0))
     
         st.markdown("#### 📈 Variance Summary")
+        # Safely extract and format each metric
+        budget = summary.get("budget_variance", {})
+        sched = summary.get("schedule_variance", {})
+        score = summary.get("risk_score", {})
+        
+        # Handle legacy format if model didn't return dicts
+        if not isinstance(budget, dict): budget = {"value": budget, "justification": None}
+        if not isinstance(sched, dict): sched = {"value": sched, "justification": None}
+        if not isinstance(score, dict): score = {"value": score, "justification": None}
+        
+        # Create side-by-side layout
         var_cols = st.columns([1, 1, 2])
-        var_cols[0].markdown(f"**📘 Budget Variance:** `{summary.get('budget_variance', 'N/A')}`")
-        var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
+        
+        # 📘 Budget Variance
+        var_cols[0].markdown(f"**📘 Budget Variance:** `{budget.get('value', 'N/A')}`")
+        if budget.get("justification"):
+            with var_cols[0].expander("Why this budget variance?"):
+                st.markdown(budget["justification"])
+        
+        # ⏱️ Schedule Variance
+        var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{sched.get('value', 'N/A')}`")
+        if sched.get("justification"):
+            with var_cols[1].expander("Why this schedule variance?"):
+                st.markdown(sched["justification"])
+        
+        # 🎯 Risk Score
         with var_cols[2]:
-            if summary.get("risk_score") is not None:
-                st.progress(int(summary["risk_score"]) / 100)
-                st.markdown(f"🎯 **Risk Score:** {summary['risk_score']}/100")
+            if score.get("value") is not None:
+                st.progress(int(score["value"]) / 100)
+                st.markdown(f"🎯 **Risk Score:** {score['value']}/100")
+                if score.get("justification"):
+                    with st.expander("Why this score?"):
+                        st.markdown(score["justification"])
+
     
     st.markdown("---")
     
