@@ -632,6 +632,8 @@ if "risk_result" in st.session_state:
         export_text = json.dumps(result_data, indent=2)
     else:
         export_text = str(result_data)
+
+    st.markdown("---")
     
     st.download_button("📄 Download as TXT", export_text, file_name="risk_analysis.txt")
     st.download_button("💾 Export as JSON", export_text, file_name="risk_analysis.json")
