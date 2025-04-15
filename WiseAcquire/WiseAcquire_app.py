@@ -523,6 +523,12 @@ if "risk_result" in st.session_state:
     st.markdown("---")
       
     st.markdown("### 📈 Variance Summary")
+    with st.expander("ℹ️ How are these metrics calculated?", expanded=False):
+        st.markdown("""
+        - **📘 Budget Variance** is calculated by comparing the projected and actual costs found in the uploaded documents.
+        - **⏱️ Schedule Variance** is based on delays between planned vs. actual milestones.
+        - **🎯 Risk Score** is not a grade—**a higher number = greater risk**. It’s a weighted score from the model, reflecting risk count, severity, and confidence levels.
+        """)
     var_cols = st.columns([1, 1, 2])
     var_cols[0].markdown(f"**📘 Budget Variance:** `{summary.get('budget_variance', 'N/A')}`")
     var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
@@ -534,18 +540,9 @@ if "risk_result" in st.session_state:
                 st.markdown(f"- Total Weighted Score: `{total_score:.2f}`")
                 st.markdown(f"- Max Possible Score: `{max_score}`")
                 st.markdown(f"- Final Risk Score: `{risk_score_calc}` out of 100")
-
-
-    with st.expander("ℹ️ How are these metrics calculated?", expanded=False):
-        st.markdown("""
-        - **📘 Budget Variance** is calculated by comparing the projected and actual costs found in the uploaded documents.
-        - **⏱️ Schedule Variance** is based on delays between planned vs. actual milestones.
-        - **🎯 Risk Score** is not a grade—**a higher number = greater risk**. It’s a weighted score from the model, reflecting risk count, severity, and confidence levels.
-        """)
     
     st.markdown("---")
     
-
     # === ⏱️ Timeline Section ===
     timeline_data = pd.DataFrame(result_data.get("timeline", []))
     if not timeline_data.empty:
