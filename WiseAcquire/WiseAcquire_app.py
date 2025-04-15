@@ -577,42 +577,51 @@ if "risk_result" in st.session_state:
     if timeline_data[["planned_start", "actual_start"]].isnull().any().any():
         st.warning("⚠️ Some date values could not be parsed. Check your timeline data for missing or invalid dates.")
     
+    timeline_data = pd.DataFrame(result_data.get("timeline", []))
+
     if not timeline_data.empty:
         st.markdown("## ⏱️ Project Timeline")
         with st.expander("📅 View Timeline Chart", expanded=False):
     
-            # Convert to datetime and flag issues
+            # 👀 Display raw timeline for debugging
+            st.dataframe(timeline_data)
+    
+            # Convert dates safely
             for col in ["planned_start", "planned_end", "actual_start", "actual_end"]:
                 timeline_data[col] = pd.to_datetime(timeline_data[col], errors="coerce")
     
-            # Drop rows where any required date is missing
+            # Drop rows with invalid dates
             cleaned = timeline_data.dropna(subset=["planned_start", "planned_end", "actual_start", "actual_end"])
     
             if cleaned.empty:
-                st.warning("⚠️ No valid dates found in timeline. Please check your uploaded document for correct date formatting (e.g., YYYY-MM-DD).")
+                st.warning("⚠️ No valid timeline data. Please check date format in your documents.")
             else:
-                cleaned = cleaned.sort_values(by="planned_start")
+                # Calculate durations
+                cleaned["planned_duration"] = cleaned["planned_end"] - cleaned["planned_start"]
+                cleaned["actual_duration"] = cleaned["actual_end"] - cleaned["actual_start"]
     
                 fig = go.Figure()
     
+                # Planned
                 fig.add_trace(go.Bar(
                     y=cleaned["task"],
-                    x=cleaned["planned_end"] - cleaned["planned_start"],
+                    x=cleaned["planned_duration"].dt.days,
                     base=cleaned["planned_start"],
                     orientation='h',
                     name='Planned',
                     marker_color='lightgray',
-                    hovertemplate='Task: %{y}<br>Planned: %{base|%Y-%m-%d} → %{x|%Y-%m-%d}<extra></extra>'
+                    hovertemplate='Planned: %{base|%Y-%m-%d} → %{x|%Y-%m-%d}<extra></extra>'
                 ))
     
+                # Actual
                 fig.add_trace(go.Bar(
                     y=cleaned["task"],
-                    x=cleaned["actual_end"] - cleaned["actual_start"],
+                    x=cleaned["actual_duration"].dt.days,
                     base=cleaned["actual_start"],
                     orientation='h',
                     name='Actual',
                     marker_color='steelblue',
-                    hovertemplate='Task: %{y}<br>Actual: %{base|%Y-%m-%d} → %{x|%Y-%m-%d}<extra></extra>'
+                    hovertemplate='Actual: %{base|%Y-%m-%d} → %{x|%Y-%m-%d}<extra></extra>'
                 ))
     
                 fig.update_layout(
@@ -621,11 +630,12 @@ if "risk_result" in st.session_state:
                     xaxis_title="Date",
                     yaxis_title="Project Phase",
                     xaxis=dict(type='date'),
-                    height=500,
-                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+                    height=450,
+                    showlegend=True
                 )
     
                 st.plotly_chart(fig, use_container_width=True)
+
     
 
             
