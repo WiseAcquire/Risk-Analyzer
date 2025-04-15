@@ -104,7 +104,11 @@ class RAGProcurementRisksAnalysis:
         retrieved_by_risks = vector_store.similarity_search_by_vector(risks_document_embedding, k=3)
         retrieved_by_target = vector_store.similarity_search_by_vector(target_document_embedding, k=3)
     
-        retrieved_documents = list({doc.page_content: doc for doc in retrieved_by_query + retrieved_by_target + retrieved_by_risks}.values())
+        # retrieved_documents = list({doc.page_content: doc for doc in retrieved_by_query + retrieved_by_target + retrieved_by_risks}.values())
+        retrieved_documents = sorted(
+            {doc.page_content: doc for doc in retrieved_by_query + retrieved_by_target + retrieved_by_risks}.values(),
+            key=lambda x: x.page_content[:100]  # Or any consistent key
+        )
 
         if not retrieved_documents:
             print("⚠️ No documents retrieved during semantic search!")
