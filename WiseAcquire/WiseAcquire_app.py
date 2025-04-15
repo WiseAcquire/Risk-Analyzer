@@ -263,16 +263,25 @@ class RAGProcurementRisksAnalysis:
             # 4. Parse JSON
             try:
                 result_json = json.loads(response_text)
-            except json.JSONDecodeError as e:
-                st.warning("⚠️ Model response was not valid JSON. Showing raw response instead.")
-                print("⚠️ JSONDecodeError:", e)
-                print("🧾 Raw cleaned output:\n", response_text[:1000])
+                if not isinstance(result_json, dict) or not all(k in result_json for k in ["summary", "risks", "timeline"]):
+                    raise ValueError("JSON structure missing required keys.")
+            except Exception as e:
+                st.warning("⚠️ Model response was not valid JSON or missing keys.")
                 st.session_state["raw_response_text"] = response_text
-                return {
-                    "summary": {},
-                    "risks": [],
-                    "timeline": []
-                }, response_text
+                return (
+                    {
+                        "summary": {
+                            "high": 0, "medium": 0, "low": 0,
+                            "budget_variance": {"value": "N/A", "justification": ""},
+                            "schedule_variance": {"value": "N/A", "justification": ""},
+                            "risk_score": {"value": 0, "justification": ""}
+                        },
+                        "risks": [],
+                        "timeline": []
+                    },
+                    response_text
+                )
+
 
             
             # 5. Validate required keys
@@ -479,7 +488,18 @@ if "risk_result" in st.session_state:
         sched_val, sched_just = parse_variance_field(summary.get("schedule_variance"))
         score_val, score_just = parse_variance_field(summary.get("risk_score"))
 
-        risks = result_data.get("risks", [])
+        if isinstance(result_data, dict) and "risks" in result_data:
+            risks = result_data.get("risks", [])
+            grouped_risks = defaultdict(list)
+            for risk in risks:
+                grouped_risks[risk['severity'].lower()].append(risk)
+            risk_counts = Counter(risk['severity'].lower() for risk in risks)
+        else:
+            st.error("❌ No risks found in the model output.")
+            risks = []
+            grouped_risks = defaultdict(list)
+            risk_counts = {}
+
         # Group and count risks
 
     grouped_risks = defaultdict(list)
