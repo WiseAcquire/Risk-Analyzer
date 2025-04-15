@@ -484,10 +484,21 @@ if "risk_result" in st.session_state:
                 return field.get("value", "N/A"), field.get("justification")
             return field or "N/A", None
         
-        budget_val, budget_just = parse_variance_field(summary.get("budget_variance"))
-        sched_val, sched_just = parse_variance_field(summary.get("schedule_variance"))
-        score_val, score_just = parse_variance_field(summary.get("risk_score"))
+        try:
+            budget_val, budget_just = parse_variance_field(summary.get("budget_variance"))
+        except Exception:
+            budget_val, budget_just = "N/A", None
         
+        try:
+            sched_val, sched_just = parse_variance_field(summary.get("schedule_variance"))
+        except Exception:
+            sched_val, sched_just = "N/A", None
+        
+        try:
+            score_val, score_just = parse_variance_field(summary.get("risk_score"))
+        except Exception:
+            score_val, score_just = "0", None
+                
         risks = result_data.get("risks", [])
         grouped_risks = defaultdict(list)
         for risk in risks:
