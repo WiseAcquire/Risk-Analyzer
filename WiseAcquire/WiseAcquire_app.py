@@ -566,6 +566,8 @@ if "risk_result" in st.session_state:
     st.markdown("---")
     
     # === ⏱️ Timeline Section ===
+    
+    st.markdown("### ⏱️ Project Timeline Details")
     timeline_data = pd.DataFrame(result_data.get("timeline", []))
     # Convert string dates to datetime
     for col in ["planned_start", "planned_end", "actual_start", "actual_end"]:
