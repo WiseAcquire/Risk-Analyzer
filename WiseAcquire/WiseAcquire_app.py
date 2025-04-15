@@ -15,6 +15,8 @@ import re
 import io
 import json
 import glob
+import plotly.graph_objects as go
+import pandas as pd
 from collections import Counter
 from collections import defaultdict
 from PIL import Image
@@ -196,8 +198,10 @@ class RAGProcurementRisksAnalysis:
           "timeline": [
             {{
               "task": "string",
-              "start": "YYYY-MM-DD",
-              "end": "YYYY-MM-DD",
+              "planned_start": "YYYY-MM-DD",
+              "planned_end": "YYYY-MM-DD",
+              "actual_start": "YYYY-MM-DD",
+              "actual_end": "YYYY-MM-DD",
               "risk": "string"
             }}
           ]
@@ -572,10 +576,41 @@ if "risk_result" in st.session_state:
     if not timeline_data.empty:
         st.markdown("## ⏱️ Project Timeline")
         with st.expander("📅 View Timeline Chart", expanded=False):
-            import plotly.express as px
-            fig = px.timeline(timeline_data, x_start="start", x_end="end", y="task", color="risk")
-            fig.update_yaxes(autorange="reversed")
+            fig = go.Figure()
+            
+            # Bar: Planned Duration (baseline)
+            fig.add_trace(go.Bar(
+                y=timeline_data["task"],
+                x=pd.to_datetime(timeline_data["planned_end"]) - pd.to_datetime(timeline_data["planned_start"]),
+                base=timeline_data["planned_start"],
+                orientation='h',
+                name='Planned',
+                marker_color='lightgray',
+                hoverinfo='x+y'
+            ))
+            
+            # Bar: Actual Duration (from target doc)
+            fig.add_trace(go.Bar(
+                y=timeline_data["task"],
+                x=pd.to_datetime(timeline_data["actual_end"]) - pd.to_datetime(timeline_data["actual_start"]),
+                base=timeline_data["actual_start"],
+                orientation='h',
+                name='Actual',
+                marker_color='steelblue',
+                hoverinfo='x+y'
+            ))
+            
+            fig.update_layout(
+                title="📅 Project Timeline: Planned vs. Actual",
+                barmode='overlay',
+                xaxis_title="Date",
+                yaxis_title="Task",
+                showlegend=True,
+                height=400
+            )
+            
             st.plotly_chart(fig, use_container_width=True)
+
 
 
     st.markdown("### 📤 Export & Share")
