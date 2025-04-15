@@ -512,6 +512,8 @@ if "risk_result" in st.session_state:
                         unsafe_allow_html=True
                     )
 
+        # Extract timeline safely
+        timeline_data = pd.DataFrame(result_data.get("timeline", []))
 
     
         if not timeline_data.empty:
