@@ -557,11 +557,15 @@ if "risk_result" in st.session_state:
                     with st.expander("Why this score?"):
                         st.markdown(score["justification"])
 
-    
+    # 🧼 Safe fallback in case of empty or invalid model output
+    if "grouped_risks" not in locals():
+        grouped_risks = defaultdict(list)
+
     st.markdown("---")
     
     # === 📋 Risk Explorer Tabs ===
     st.markdown("## 📋 Risk Explorer")
+    if "grouped_risks" not in locals(): grouped_risks = defaultdict(list)
     tabs = st.tabs([
         f"🟥 High Risks ({len(grouped_risks['high'])})",
         f"🟧 Medium Risks ({len(grouped_risks['medium'])})",
