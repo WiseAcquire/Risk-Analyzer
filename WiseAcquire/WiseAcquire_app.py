@@ -579,51 +579,40 @@ if "risk_result" in st.session_state:
     
     timeline_data = pd.DataFrame(result_data.get("timeline", []))
 
-    if not timeline_data.empty:
+    import plotly.express as px
+    
+    if not cleaned.empty:
         st.markdown("## ⏱️ Project Timeline")
         with st.expander("📅 View Timeline Chart", expanded=False):
     
-            # 👀 Display raw timeline for debugging
-            st.dataframe(timeline_data)
+            fig = px.timeline(
+                cleaned,
+                x_start="planned_start",
+                x_end="planned_end",
+                y="task",
+                color_discrete_sequence=["lightgray"],
+                labels={"task": "Project Phase"},
+            )
+            fig.add_traces(px.timeline(
+                cleaned,
+                x_start="actual_start",
+                x_end="actual_end",
+                y="task",
+                color_discrete_sequence=["steelblue"]
+            ).data)
     
-            # Convert dates safely
-            for col in ["planned_start", "planned_end", "actual_start", "actual_end"]:
-                timeline_data[col] = pd.to_datetime(timeline_data[col], errors="coerce")
+            fig.update_yaxes(autorange="reversed")
+            fig.update_layout(
+                title="📅 Project Timeline: Planned vs. Actual",
+                barmode='overlay',
+                height=400,
+                xaxis_title="Date",
+                yaxis_title="Project Phase",
+                showlegend=False
+            )
     
-            # Drop rows with invalid dates
-            cleaned = timeline_data.dropna(subset=["planned_start", "planned_end", "actual_start", "actual_end"])
+            st.plotly_chart(fig, use_container_width=True)
     
-            if cleaned.empty:
-                st.warning("⚠️ No valid timeline data. Please check date format in your documents.")
-            else:
-                # Calculate durations
-                cleaned["planned_duration"] = cleaned["planned_end"] - cleaned["planned_start"]
-                cleaned["actual_duration"] = cleaned["actual_end"] - cleaned["actual_start"]
-    
-                fig = go.Figure()
-
-                # Planned
-                fig.add_trace(go.Bar(
-                    y=cleaned["task"],
-                    x=cleaned["planned_end"],
-                    x0=cleaned["planned_start"],
-                    orientation='h',
-                    name='Planned',
-                    marker_color='lightgray'
-                ))
-                
-                # Actual
-                fig.add_trace(go.Bar(
-                    y=cleaned["task"],
-                    x=cleaned["actual_end"],
-                    x0=cleaned["actual_start"],
-                    orientation='h',
-                    name='Actual',
-                    marker_color='steelblue'
-                ))
-
-    
-                st.plotly_chart(fig, use_container_width=True)
 
     
 
