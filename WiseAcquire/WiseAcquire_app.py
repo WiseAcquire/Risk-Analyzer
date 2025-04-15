@@ -576,6 +576,9 @@ if "risk_result" in st.session_state:
         st.warning("⚠️ Some date values could not be parsed. Check your timeline data for missing or invalid dates.")
     
     timeline_data = pd.DataFrame(result_data.get("timeline", []))
+    for col in ["planned_start", "planned_end", "actual_start", "actual_end"]:
+        if col in timeline_data.columns:
+            timeline_data[col] = pd.to_datetime(timeline_data[col], errors="coerce")
 
     import plotly.express as px
     import plotly.graph_objects as go
