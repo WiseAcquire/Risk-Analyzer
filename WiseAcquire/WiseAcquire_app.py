@@ -506,12 +506,7 @@ if "risk_result" in st.session_state:
             grouped_risks = defaultdict(list)
             risk_counts = {}
 
-        # Group and count risks
-
-    grouped_risks = defaultdict(list)
-    for risk in risks:
-        grouped_risks[risk['severity'].lower()].append(risk)
-    risk_counts = Counter(risk['severity'].lower() for risk in risks)
+        
     
     # 📊 Risk Summary Panel
     with st.container():
