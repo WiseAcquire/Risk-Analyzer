@@ -536,6 +536,14 @@ if "risk_result" in st.session_state:
         if summary.get("risk_score") is not None:
             st.progress(summary["risk_score"] / 100)
             st.markdown(f"🎯 **Overall Risk Level:** {summary['risk_score']}/100")
+            # Add color-coded level
+            if summary["risk_score"] >= 75:
+                st.error("🔴 High Risk Level")
+            elif summary["risk_score"] >= 40:
+                st.warning("🟠 Moderate Risk Level")
+            else:
+                st.success("🟢 Low Risk Level")
+
             with st.expander("🧠 Risk Score Calculation Breakdown"):
                 st.markdown(f"- Total Weighted Score: `{total_score:.2f}`")
                 st.markdown(f"- Max Possible Score: `{max_score}`")
