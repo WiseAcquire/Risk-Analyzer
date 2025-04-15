@@ -576,61 +576,47 @@ if "risk_result" in st.session_state:
         st.warning("⚠️ Some date values could not be parsed. Check your timeline data for missing or invalid dates.")
     
     timeline_data = pd.DataFrame(result_data.get("timeline", []))
-
-    import plotly.express as px
-    import plotly.graph_objects as go
     
-    # Ensure datetime conversion
+    import plotly.express as px
+    
+    # Ensure dates are datetime
     for col in ["planned_start", "planned_end", "actual_start", "actual_end"]:
         if col in timeline_data.columns:
             timeline_data[col] = pd.to_datetime(timeline_data[col], errors="coerce")
     
-    # Calculate delay (if not already present)
-    if "delay_days" not in timeline_data.columns and "planned_end" in timeline_data and "actual_end" in timeline_data:
-        timeline_data["delay_days"] = (timeline_data["actual_end"] - timeline_data["planned_end"]).dt.days
+    # Add a new column to distinguish actual vs planned
+    planned_df = timeline_data.copy()
+    planned_df["category"] = "Planned"
+    planned_df["start"] = planned_df["planned_start"]
+    planned_df["end"] = planned_df["planned_end"]
     
-    # Build chart
-    if not timeline_data.empty:
-        st.markdown("## ⏱️ Project Timeline")
-        with st.expander("📅 View Timeline Chart", expanded=False):
-            fig = go.Figure()
+    actual_df = timeline_data.copy()
+    actual_df["category"] = "Actual"
+    actual_df["start"] = actual_df["actual_start"]
+    actual_df["end"] = actual_df["actual_end"]
     
-            # Planned
-            fig.add_trace(go.Bar(
-                y=timeline_data["task"],
-                x=timeline_data["planned_end"],
-                base=timeline_data["planned_start"],
-                orientation='h',
-                name='Planned',
-                marker_color='lightgray',
-                hoverinfo="x+text",
-                hovertext=timeline_data["task"]
-            ))
+    # Combine both
+    combined_df = pd.concat([planned_df, actual_df])
     
-            # Actual
-            fig.add_trace(go.Bar(
-                y=timeline_data["task"],
-                x=timeline_data["actual_end"],
-                base=timeline_data["actual_start"],
-                orientation='h',
-                name='Actual',
-                marker_color='steelblue',
-                hoverinfo="x+text",
-                hovertext=timeline_data["task"]
-            ))
+    # Plot
+    fig = px.timeline(
+        combined_df,
+        x_start="start",
+        x_end="end",
+        y="task",
+        color="category",
+        title="📅 Project Timeline: Planned vs. Actual",
+        labels={"task": "Project Phase"},
+        color_discrete_map={"Planned": "lightgray", "Actual": "steelblue"},
+    )
     
-            fig.update_layout(
-                title="📅 Project Timeline: Planned vs. Actual",
-                barmode='overlay',
-                xaxis_title="Date",
-                yaxis_title="Project Phase",
-                height=450,
-                showlegend=True
-            )
-            fig.update_yaxes(autorange="reversed")
-            st.plotly_chart(fig, use_container_width=True)
+    fig.update_yaxes(autorange="reversed")
+    fig.update_layout(height=450, xaxis_title="Date", yaxis_title="Project Phase")
+    st.plotly_chart(fig, use_container_width=True)
+
     
-        
+    st.write(timeline_data[["task", "planned_start", "planned_end", "actual_start", "actual_end"]])
+    
     if "delay_days" in timeline_data.columns or "risk" in timeline_data.columns:
         st.markdown("### ⚠️ Phase Risk and Delay Summary")
         for _, row in timeline_data.iterrows():
