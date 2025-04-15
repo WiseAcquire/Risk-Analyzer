@@ -522,13 +522,15 @@ if "risk_result" in st.session_state:
             
         if grouped_risks:
             st.markdown("### 📋 Risk Explorer Panel")
-        jump = st.session_state.get("jump_to")
         
-        # Prioritize and render selected severity group first
+        jump = st.session_state.get("jump_to")
+        prioritized = []
+        
         if jump in ["high", "medium", "low"]:
-            st.markdown(f"### 📋 {jump.capitalize()} Risk Explorer Panel")
-            for risk in grouped_risks[jump]:
-                with st.expander(f"{risk['type']} **{risk['title']}** — {jump.capitalize()} Risk ({risk['confidence']}%)"):
+            st.markdown(f"### 🎯 Focused View: {jump.capitalize()} Risks")
+            prioritized = grouped_risks[jump]
+            for risk in prioritized:
+                with st.expander(f"📌 {risk['type']} — {jump.capitalize()} Risk ({risk['confidence']}%)", expanded=True):
                     st.markdown(f"**Key Insight:** {risk['key_data']}")
                     st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
                     st.markdown(
@@ -536,17 +538,25 @@ if "risk_result" in st.session_state:
                         💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
                         unsafe_allow_html=True
                     )
+                    st.markdown(
+                        f"""<div style="color: #ff4b4b;"><b>Highlighted due to user selection</b></div>""",
+                        unsafe_allow_html=True,
+                    )
         
-        # Render the rest normally (but skip the one already shown)
+        # Then render the rest (if not already shown)
         for severity, label in [("high", "🟥 High Risks"), ("medium", "🟧 Medium Risks"), ("low", "🟩 Low Risks")]:
             if severity == jump:
                 continue
             st.markdown(f"#### {label}")
             for risk in grouped_risks[severity]:
-                with st.expander(f"{risk['type']} **{risk['title']}** — {severity.capitalize()} Risk ({risk['confidence']}%)"):
+                with st.expander(f"{risk['type']} — {severity.capitalize()} Risk ({risk['confidence']}%)"):
                     st.markdown(f"**Key Insight:** {risk['key_data']}")
                     st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
 
+
+       
+
+        
         # Reset jump key so next render doesn't keep prioritizing the section
         st.session_state["jump_to"] = None
 
