@@ -507,8 +507,15 @@ if "risk_result" in st.session_state:
             risk_counts = {}
 
 
-        if 'risk_counts' not in locals():
+    if 'risk_counts' not in locals():
         risk_counts = Counter()
+        
+    if 'grouped_risks' not in locals():
+        grouped_risks = defaultdict(list)
+    
+    if 'risk_counts' not in locals():
+        risk_counts = Counter()
+
     
     # 📊 Risk Summary Panel
     with st.container():
