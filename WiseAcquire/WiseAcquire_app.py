@@ -455,9 +455,9 @@ if "risk_result" in st.session_state:
         st.code(result_data[:1000] if isinstance(result_data, str) else json.dumps(result_data, indent=2)[:1000])
         st.code(result_data if isinstance(result_data, str) else str(result_data))
     else:
-        summary = result_data.get("summary", {})
+        # summary = result_data.get("summary", {})
         risks = result_data.get("risks", [])
-        # ✅ Improved Risk Score Calculation (Clipped confidence, weighted severity)
+        # ✅ Improved Risk Score Calculation (with clipped confidence and weighted severity)
         weights = {"high": 3, "medium": 2, "low": 1}
         total_score = 0
         max_score = 0
@@ -465,17 +465,18 @@ if "risk_result" in st.session_state:
         for risk in risks:
             severity = risk["severity"].lower()
             raw_confidence = risk.get("confidence", 100)
-            confidence = max(raw_confidence, 20)  # Avoid ultra-low dilution
+            confidence = max(raw_confidence, 20)  # Clip low confidence
         
             weight = weights.get(severity, 0)
-            score_contribution = weight * (confidence / 100)
-        
-            total_score += score_contribution
-            max_score += weight  # Max possible score = sum of weights
+            total_score += weight * (confidence / 100)
+            max_score += weight
         
         # Normalize to 0–100 range
         risk_score_calc = int((total_score / max_score) * 100) if max_score > 0 else 0
         summary["risk_score"] = risk_score_calc
+        
+        print(f"🧠 Final Risk Score: {risk_score_calc} (from {len(risks)} risks)")
+        
 
 
 
@@ -526,6 +527,11 @@ if "risk_result" in st.session_state:
         if summary.get("risk_score") is not None:
             st.progress(summary["risk_score"] / 100)
             st.markdown(f"🎯 **Overall Risk Level:** {summary['risk_score']}/100")
+            with st.expander("🧠 Risk Score Calculation Breakdown"):
+                st.markdown(f"- Total Weighted Score: `{total_score:.2f}`")
+                st.markdown(f"- Max Possible Score: `{max_score}`")
+                st.markdown(f"- Final Risk Score: `{risk_score_calc}` out of 100")
+
 
     with st.expander("ℹ️ How are these metrics calculated?", expanded=False):
         st.markdown("""
