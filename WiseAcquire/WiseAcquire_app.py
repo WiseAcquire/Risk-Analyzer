@@ -504,7 +504,13 @@ if "risk_result" in st.session_state:
                         f"""<div title="Why this category?">{risk['severity']} based on: <b>{risk['key_data']}</b></div>""",
                         unsafe_allow_html=True
                     )
-    
+    with st.expander("ℹ️ How are these metrics calculated?", expanded=False):
+        st.markdown("""
+        - **📘 Budget Variance** is calculated by comparing the projected and actual costs found in the uploaded documents.
+        - **⏱️ Schedule Variance** is based on delays between planned vs. actual milestones.
+        - **🎯 Risk Score** is not a grade—**a higher number = greater risk**. It’s a weighted score from the model, reflecting risk count, severity, and confidence levels.
+        """)
+
     st.markdown("---")
     
     # === ⏱️ Timeline Section ===
