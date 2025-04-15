@@ -473,26 +473,9 @@ if "risk_result" in st.session_state:
         summary_cols[0].metric("🟥 High Risks", risk_counts.get("high", 0))
         summary_cols[1].metric("🟧 Medium Risks", risk_counts.get("medium", 0))
         summary_cols[2].metric("🟩 Low Risks", risk_counts.get("low", 0))
-    
-        st.markdown("#### 📈 Variance Summary")
-        var_cols = st.columns([1, 1, 2])
-        var_cols[0].markdown(f"**📘 Budget Variance:** `{summary.get('budget_variance', 'N/A')}`")
-        var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
-        with var_cols[2]:
-            if summary.get("risk_score") is not None:
-                st.progress(int(summary["risk_score"]) / 100)
-                st.markdown(f"🎯 **Risk Score:** {summary['risk_score']}/100")
-    with st.expander("ℹ️ How are these metrics calculated?", expanded=False):
-        st.markdown("""
-        - **📘 Budget Variance** is calculated by comparing the projected and actual costs found in the uploaded documents.
-        - **⏱️ Schedule Variance** is based on delays between planned vs. actual milestones.
-        - **🎯 Risk Score** is not a grade—**a higher number = greater risk**. It’s a weighted score from the model, reflecting risk count, severity, and confidence levels.
-        """)
-    
-    st.markdown("---")
-    
+      
     # === 📋 Risk Explorer Tabs ===
-    st.markdown("## 📋 Risk Explorer")
+    st.markdown("#### 📋 Risk Explorer")
     tabs = st.tabs([
         f"🟥 High Risks ({len(grouped_risks['high'])})",
         f"🟧 Medium Risks ({len(grouped_risks['medium'])})",
@@ -512,6 +495,25 @@ if "risk_result" in st.session_state:
                     )
 
     st.markdown("---")
+      
+        st.markdown("### 📈 Variance Summary")
+        var_cols = st.columns([1, 1, 2])
+        var_cols[0].markdown(f"**📘 Budget Variance:** `{summary.get('budget_variance', 'N/A')}`")
+        var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
+        with var_cols[2]:
+            if summary.get("risk_score") is not None:
+                st.progress(int(summary["risk_score"]) / 100)
+                st.markdown(f"🎯 **Risk Score:** {summary['risk_score']}/100")
+    with st.expander("ℹ️ How are these metrics calculated?", expanded=False):
+        st.markdown("""
+        - **📘 Budget Variance** is calculated by comparing the projected and actual costs found in the uploaded documents.
+        - **⏱️ Schedule Variance** is based on delays between planned vs. actual milestones.
+        - **🎯 Risk Score** is not a grade—**a higher number = greater risk**. It’s a weighted score from the model, reflecting risk count, severity, and confidence levels.
+        """)
+    
+    st.markdown("---")
+    
+
     
     # === ⏱️ Timeline Section ===
     timeline_data = pd.DataFrame(result_data.get("timeline", []))
