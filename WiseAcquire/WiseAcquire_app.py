@@ -484,83 +484,48 @@ if "risk_result" in st.session_state:
                 return field.get("value", "N/A"), field.get("justification")
             return field or "N/A", None
         
-        try:
-            budget_val, budget_just = parse_variance_field(summary.get("budget_variance"))
-        except Exception:
-            budget_val, budget_just = "N/A", None
+        # ✅ Only display summary if it exists
+        if summary:
+            try:
+                budget_val, budget_just = parse_variance_field(summary.get("budget_variance"))
+                sched_val, sched_just = parse_variance_field(summary.get("schedule_variance"))
+                score_val, score_just = parse_variance_field(summary.get("risk_score"))
+            except Exception:
+                budget_val, budget_just = "N/A", None
+                sched_val, sched_just = "N/A", None
+                score_val, score_just = "0", None
         
-        try:
-            sched_val, sched_just = parse_variance_field(summary.get("schedule_variance"))
-        except Exception:
-            sched_val, sched_just = "N/A", None
+            with st.container():
+                st.markdown("## 📊 Risk Summary")
+                st.markdown("Quick overview of the identified risks and key project metrics.")
+                summary_cols = st.columns([1, 1, 1])
+                summary_cols[0].metric("🟥 High Risks", risk_counts.get("high", 0))
+                summary_cols[1].metric("🟧 Medium Risks", risk_counts.get("medium", 0))
+                summary_cols[2].metric("🟩 Low Risks", risk_counts.get("low", 0))
         
-        try:
-            score_val, score_just = parse_variance_field(summary.get("risk_score"))
-        except Exception:
-            score_val, score_just = "0", None
-                
-        risks = result_data.get("risks", [])
-        grouped_risks = defaultdict(list)
-        for risk in risks:
-            grouped_risks[risk['severity'].lower()].append(risk)
-        risk_counts = Counter(risk['severity'].lower() for risk in risks)
-
-        if isinstance(result_data, dict) and "risks" in result_data:
-            risks = result_data.get("risks", [])
-            grouped_risks = defaultdict(list)
-            for risk in risks:
-                grouped_risks[risk['severity'].lower()].append(risk)
-            risk_counts = Counter(risk['severity'].lower() for risk in risks)
+                st.markdown("#### 📈 Variance Summary")
+                var_cols = st.columns([1, 1, 2])
+        
+                var_cols[0].markdown(f"**📘 Budget Variance:** `{budget_val}`")
+                if budget_just:
+                    with var_cols[0].expander("Why this budget variance?"):
+                        st.markdown(budget_just)
+        
+                var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{sched_val}`")
+                if sched_just:
+                    with var_cols[1].expander("Why this schedule variance?"):
+                        st.markdown(sched_just)
+        
+                with var_cols[2]:
+                    if score_val != "N/A":
+                        st.progress(int(score_val) / 100)
+                        st.markdown(f"🎯 **Risk Score:** {score_val}/100")
+                        if score_just:
+                            with st.expander("Why this score?"):
+                                st.markdown(score_just)
         else:
-            st.error("❌ No risks found in the model output.")
-            risks = []
-            grouped_risks = defaultdict(list)
-            risk_counts = {}
+            st.warning("⚠️ No summary data was returned by the model. Skipping risk summary section.")
 
-
-    if 'risk_counts' not in locals():
-        risk_counts = Counter()
-        
-    if 'grouped_risks' not in locals():
-        grouped_risks = defaultdict(list)
-    
-    if 'risk_counts' not in locals():
-        risk_counts = Counter()
-
-    
-    # 📊 Risk Summary Panel
-    with st.container():
-        st.markdown("## 📊 Risk Summary")
-        st.markdown("Quick overview of the identified risks and key project metrics.")
-        summary_cols = st.columns([1, 1, 1])
-        summary_cols[0].metric("🟥 High Risks", risk_counts.get("high", 0))
-        summary_cols[1].metric("🟧 Medium Risks", risk_counts.get("medium", 0))
-        summary_cols[2].metric("🟩 Low Risks", risk_counts.get("low", 0))
-    
-        st.markdown("#### 📈 Variance Summary")
-        # Safely extract and format each metric
-        var_cols = st.columns([1, 1, 2])
-        
-        # Budget
-        var_cols[0].markdown(f"**📘 Budget Variance:** `{budget_val}`")
-        if budget_just:
-            with var_cols[0].expander("Why this budget variance?"):
-                st.markdown(budget_just)
-        
-        # Schedule
-        var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{sched_val}`")
-        if sched_just:
-            with var_cols[1].expander("Why this schedule variance?"):
-                st.markdown(sched_just)
-        
-        # Risk Score
-        with var_cols[2]:
-            if score_val != "N/A":
-                st.progress(int(score_val) / 100)
-                st.markdown(f"🎯 **Risk Score:** {score_val}/100")
-                if score_just:
-                    with st.expander("Why this score?"):
-                        st.markdown(score_just)
 
         
         # Handle legacy format if model didn't return dicts
