@@ -529,25 +529,30 @@ if "risk_result" in st.session_state:
         - **⏱️ Schedule Variance** is based on delays between planned vs. actual milestones.
         - **🎯 Risk Score** is not a grade—**a higher number = greater risk**. It’s a weighted score from the model, reflecting risk count, severity, and confidence levels.
         """)
-    var_cols = st.columns([1, 1, 2])
-    var_cols[0].markdown(f"**📘 Budget Variance:** `{summary.get('budget_variance', 'N/A')}`")
-    var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
-    with var_cols[2]:
-            score = summary.get("risk_score", 0)
-            st.markdown(f"🎯 **Overall Risk Level:** {score}/100")
-            st.progress(score / 100)
-        
-            if score >= 75:
-                st.markdown('<div style="background-color:#ffecec; padding: 0.5rem 1rem; border-radius: 10px;"><span style="color: red; font-weight: bold;">🔴 High Risk Level</span></div>', unsafe_allow_html=True)
-            elif score >= 40:
-                st.markdown('<div style="background-color:#fff9e6; padding: 0.5rem 1rem; border-radius: 10px;"><span style="color: #e69500; font-weight: bold;">🟠 Moderate Risk Level</span></div>', unsafe_allow_html=True)
-            else:
-                st.markdown('<div style="background-color:#e6f9ec; padding: 0.5rem 1rem; border-radius: 10px;"><span style="color: #2e8b57; font-weight: bold;">🟢 Low Risk Level</span></div>', unsafe_allow_html=True)
-        
-            with st.expander("🧠 Risk Score Calculation Breakdown"):
-                st.markdown(f"- **Total Weighted Score:** `{total_score:.2f}`")
-                st.markdown(f"- **Max Possible Score:** `{max_score}`")
-                st.markdown(f"- **Final Risk Score:** `{risk_score_calc}` out of 100")
+    col_left, col_right = st.columns([2, 3])
+    
+    with col_left:
+        st.markdown(f"**📘 Budget Variance:**")
+        st.success(f"{summary.get('budget_variance', 'N/A')}")
+        st.markdown(f"**⏱️ Schedule Variance:**")
+        st.success(f"{summary.get('schedule_variance', 'N/A')}")
+    
+    with col_right:
+        score = summary.get("risk_score", 0)
+        st.markdown(f"🎯 **Overall Risk Level:** {score}/100")
+        st.progress(score / 100)
+    
+        if score >= 75:
+            st.markdown('<div style="background-color:#ffecec; padding: 0.5rem 1rem; border-radius: 10px;"><span style="color: red; font-weight: bold;">🔴 High Risk Level</span></div>', unsafe_allow_html=True)
+        elif score >= 40:
+            st.markdown('<div style="background-color:#fff9e6; padding: 0.5rem 1rem; border-radius: 10px;"><span style="color: #e69500; font-weight: bold;">🟠 Moderate Risk Level</span></div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="background-color:#e6f9ec; padding: 0.5rem 1rem; border-radius: 10px;"><span style="color: #2e8b57; font-weight: bold;">🟢 Low Risk Level</span></div>', unsafe_allow_html=True)
+    
+        with st.expander("🧠 Risk Score Calculation Breakdown"):
+            st.markdown(f"- **Total Weighted Score:** `{total_score:.2f}`")
+            st.markdown(f"- **Max Possible Score:** `{max_score}`")
+            st.markdown(f"- **Final Risk Score:** `{risk_score_calc}` out of 100")
 
     
     st.markdown("---")
