@@ -497,13 +497,13 @@ if "risk_result" in st.session_state:
     st.markdown("---")
       
     st.markdown("### 📈 Variance Summary")
-        var_cols = st.columns([1, 1, 2])
-        var_cols[0].markdown(f"**📘 Budget Variance:** `{summary.get('budget_variance', 'N/A')}`")
-        var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
-        with var_cols[2]:
-            if summary.get("risk_score") is not None:
-                st.progress(int(summary["risk_score"]) / 100)
-                st.markdown(f"🎯 **Risk Score:** {summary['risk_score']}/100")
+    var_cols = st.columns([1, 1, 2])
+    var_cols[0].markdown(f"**📘 Budget Variance:** `{summary.get('budget_variance', 'N/A')}`")
+    var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
+    with var_cols[2]:
+        if summary.get("risk_score") is not None:
+            st.progress(int(summary["risk_score"]) / 100)
+            st.markdown(f"🎯 **Risk Score:** {summary['risk_score']}/100")
     with st.expander("ℹ️ How are these metrics calculated?", expanded=False):
         st.markdown("""
         - **📘 Budget Variance** is calculated by comparing the projected and actual costs found in the uploaded documents.
