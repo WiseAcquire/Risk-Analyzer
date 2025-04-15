@@ -506,13 +506,14 @@ if "risk_result" in st.session_state:
             grouped_risks = defaultdict(list)
             risk_counts = {}
 
-        
+
+        if 'risk_counts' not in locals():
+        risk_counts = Counter()
     
     # 📊 Risk Summary Panel
     with st.container():
         st.markdown("## 📊 Risk Summary")
         st.markdown("Quick overview of the identified risks and key project metrics.")
-    
         summary_cols = st.columns([1, 1, 1])
         summary_cols[0].metric("🟥 High Risks", risk_counts.get("high", 0))
         summary_cols[1].metric("🟧 Medium Risks", risk_counts.get("medium", 0))
