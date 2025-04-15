@@ -120,7 +120,7 @@ class RAGProcurementRisksAnalysis:
             file.write(risk_analysis)
     
     def generate_risks_analysis_rag(self):
-        llm = ChatOpenAI(model="gpt-4o", temperature=0.5, openai_api_key=self.api_key)
+        llm = ChatOpenAI(model="gpt-4o", temperature=0.0, openai_api_key=self.api_key)
     
         # Validate document availability
         if not self.risks_document or not self.risks_document[0].page_content.strip():
