@@ -465,17 +465,17 @@ if "risk_result" in st.session_state:
         # Weighted severity and confidence (with min confidence floor)
         weights = {"high": 10, "medium": 5, "low": 1}
         total_score = 0
-        max_possible_score = 0  # <== this fixes your error
+        max_possible_score = 0
         
         for risk in risks:
             severity = risk["severity"].lower()
-            confidence = risk.get("confidence", 100)
+            raw_confidence = risk.get("confidence", 100)
+            confidence = max(raw_confidence, 50)  # 📌 floor confidence to 50%
+        
             weight = weights.get(severity, 0)
-        
             total_score += weight * (confidence / 100)
-            max_possible_score += weight  # <== dynamic max possible score based on inputs
+            max_possible_score += weight
         
-        # Normalize to 0–100
         risk_score_calc = int((total_score / max_possible_score) * 100) if max_possible_score else 0
         summary["risk_score"] = risk_score_calc
         
