@@ -483,7 +483,8 @@ if "risk_result" in st.session_state:
 
         
         # Debug log
-        print(f"🧠 Final Risk Score: {risk_score_calc} from raw total: {total_score:.2f}")
+        print(f"🧠 Final Risk Score: {risk_score_calc} from raw total: {total_weighted_score:.2f}")
+
 
 
 
