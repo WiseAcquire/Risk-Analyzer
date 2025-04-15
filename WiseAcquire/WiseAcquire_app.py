@@ -457,7 +457,7 @@ if "risk_result" in st.session_state:
     else:
         summary = result_data.get("summary", {})
         risks = result_data.get("risks", [])
-        # ✅ Improved Risk Score Calculation (with clipped confidence and weighted severity)
+        # ✅ Risk Score Calculation (confidence floor + weighted severity)
         weights = {"high": 3, "medium": 2, "low": 1}
         total_score = 0
         max_score = 0
@@ -465,18 +465,21 @@ if "risk_result" in st.session_state:
         for risk in risks:
             severity = risk["severity"].lower()
             raw_confidence = risk.get("confidence", 100)
-            confidence = max(raw_confidence, 20)  # Clip low confidence
+            confidence = max(raw_confidence, 50)  # Floor confidence to 50%
         
             weight = weights.get(severity, 0)
-            total_score += weight * (confidence / 100)
+            score_contribution = weight * (confidence / 100)
+        
+            total_score += score_contribution
             max_score += weight
         
-        # Normalize to 0–100 range
+        # Normalize to 0–100
         risk_score_calc = int((total_score / max_score) * 100) if max_score > 0 else 0
         summary["risk_score"] = risk_score_calc
         
-        print(f"🧠 Final Risk Score: {risk_score_calc} (from {len(risks)} risks)")
-        
+        # Optional debug print
+        print(f"🧠 Final Risk Score: {risk_score_calc} from total: {total_score:.2f} / max: {max_score}")
+
 
 
 
