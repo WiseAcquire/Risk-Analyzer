@@ -486,20 +486,23 @@ if "risk_result" in st.session_state:
         with col1:
             st.markdown("**🟥 High Risks**")
             st.markdown(f"### {risk_counts.get('high', 0)}")
-            if st.button("View High Risks", key="https://maestro-risk.streamlit.app/~/+/#18e3a01d"):
+            if st.button("View High Risks", key="go_high"):
                 st.session_state["jump_to"] = "high"
+                st.experimental_rerun()
         
         with col2:
             st.markdown("**🟧 Medium Risks**")
             st.markdown(f"### {risk_counts.get('medium', 0)}")
             if st.button("View Medium Risks", key="go_medium"):
                 st.session_state["jump_to"] = "medium"
+                st.experimental_rerun()
         
         with col3:
             st.markdown("**🟩 Low Risks**")
             st.markdown(f"### {risk_counts.get('low', 0)}")
             if st.button("View Low Risks", key="go_low"):
                 st.session_state["jump_to"] = "low"
+                st.experimental_rerun()
 
     
         st.markdown(f"📈 **Budget Variance:** {summary.get('budget_variance', 'N/A')}")
@@ -520,7 +523,6 @@ if "risk_result" in st.session_state:
         if grouped_risks:
             st.markdown("### 📋 Risk Explorer Panel")
         
-        jump = st.session_state.get("jump_to")
         
         # Prioritize and render selected severity group first
         if jump in ["high", "medium", "low"]:
@@ -565,7 +567,8 @@ if "risk_result" in st.session_state:
     
     st.download_button("📄 Download as TXT", export_text, file_name="risk_analysis.txt")
     st.download_button("💾 Export as JSON", export_text, file_name="risk_analysis.json")
-
+    st.session_state["jump_to"] = None
+    jump = st.session_state.get("jump_to")
 
     
     # Fallback UI to debug raw output            
