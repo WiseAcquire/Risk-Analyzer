@@ -478,7 +478,7 @@ if "risk_result" in st.session_state:
         summary["risk_score"] = risk_score_calc
         
         # Optional debug print
-        print(f"🧠 Final Risk Score: {risk_score_calc} from total: {total_score:.2f} / max: {max_score}")
+        print(f"🧠 Final Risk Score: {risk_score_calc} from total: {total_score:.2f} / max: {max_possible_score}")
 
 
 
