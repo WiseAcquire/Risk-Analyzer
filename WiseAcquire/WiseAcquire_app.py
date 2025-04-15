@@ -582,40 +582,44 @@ if "risk_result" in st.session_state:
         with st.expander("📅 View Timeline Chart", expanded=False):
             fig = go.Figure()
             
-            # Bar: Planned Duration (baseline)
+            # Calculate durations
+            timeline_data["planned_duration"] = (timeline_data["planned_end"] - timeline_data["planned_start"]).dt.days
+            timeline_data["actual_duration"] = (timeline_data["actual_end"] - timeline_data["actual_start"]).dt.days
+            
+            # Planned bar
             fig.add_trace(go.Bar(
                 y=timeline_data["task"],
-                x=pd.to_datetime(timeline_data["planned_end"]) - pd.to_datetime(timeline_data["planned_start"]),
+                x=timeline_data["planned_duration"],
                 base=timeline_data["planned_start"],
                 orientation='h',
                 name='Planned',
                 marker_color='lightgray',
-                hoverinfo='x+y'
+                hovertemplate='Task: %{y}<br>Start: %{base|%Y-%m-%d}<br>Duration: %{x} days'
             ))
             
-            # Bar: Actual Duration (from target doc)
+            # Actual bar
             fig.add_trace(go.Bar(
                 y=timeline_data["task"],
-                x=pd.to_datetime(timeline_data["actual_end"]) - pd.to_datetime(timeline_data["actual_start"]),
+                x=timeline_data["actual_duration"],
                 base=timeline_data["actual_start"],
                 orientation='h',
                 name='Actual',
                 marker_color='steelblue',
-                hoverinfo='x+y'
+                hovertemplate='Task: %{y}<br>Start: %{base|%Y-%m-%d}<br>Duration: %{x} days'
             ))
             
             fig.update_layout(
                 title="📅 Project Timeline: Planned vs. Actual",
-                barmode='group',  # <-- was 'overlay'
+                barmode='overlay',
                 xaxis_title="Date",
                 yaxis_title="Task",
                 showlegend=True,
                 height=400
             )
-
             
             st.plotly_chart(fig, use_container_width=True)
-
+            
+            
 
 
     st.markdown("### 📤 Export & Share")
