@@ -179,18 +179,9 @@ class RAGProcurementRisksAnalysis:
             "high": number of risks with "severity": "High",
             "medium": number of risks with "severity": "Medium",
             "low": number of risks with "severity": "Low",
-            "budget_variance": {
-              "value": "string",
-              "justification": "string"
-            },
-            "schedule_variance": {
-              "value": "string",
-              "justification": "string"
-            },
-            "risk_score": {
-              "value": "int",
-              "justification": "string"
-            }
+            "budget_variance": "string",
+            "schedule_variance": "string",
+            "risk_score": "int"
           }},
           "risks": [
             {{
@@ -263,25 +254,16 @@ class RAGProcurementRisksAnalysis:
             # 4. Parse JSON
             try:
                 result_json = json.loads(response_text)
-                if not isinstance(result_json, dict) or not all(k in result_json for k in ["summary", "risks", "timeline"]):
-                    raise ValueError("JSON structure missing required keys.")
-            except Exception as e:
-                st.warning("⚠️ Model response was not valid JSON or missing keys.")
+            except json.JSONDecodeError as e:
+                st.warning("⚠️ Model response was not valid JSON. Showing raw response instead.")
+                print("⚠️ JSONDecodeError:", e)
+                print("🧾 Raw cleaned output:\n", response_text[:1000])
                 st.session_state["raw_response_text"] = response_text
-                return (
-                    {
-                        "summary": {
-                            "high": 0, "medium": 0, "low": 0,
-                            "budget_variance": {"value": "N/A", "justification": ""},
-                            "schedule_variance": {"value": "N/A", "justification": ""},
-                            "risk_score": {"value": 0, "justification": ""}
-                        },
-                        "risks": [],
-                        "timeline": []
-                    },
-                    response_text
-                )
-
+                return {
+                    "summary": {},
+                    "risks": [],
+                    "timeline": []
+                }, response_text
 
             
             # 5. Validate required keys
@@ -464,12 +446,7 @@ def extract_risk_summary(text):
 
 # === Render Analysis Results If Present ===
 if "risk_result" in st.session_state:
-    risk_result = st.session_state.get("risk_result", ({}, ""))
-    if isinstance(risk_result, tuple) and len(risk_result) == 2:
-        result_data, raw_output = risk_result
-    else:
-        result_data, raw_output = {}, ""
-
+    result_data, raw_output = st.session_state.get("risk_result", ({}, ""))
 
     if not isinstance(result_data, dict) or "risks" not in result_data or not isinstance(raw_output, str):
         st.error("⚠️ The model did not return a structured JSON output. Please try again or check the LLM output formatting.")
@@ -479,93 +456,37 @@ if "risk_result" in st.session_state:
         st.code(result_data if isinstance(result_data, str) else str(result_data))
     else:
         summary = result_data.get("summary", {})
-        def parse_variance_field(field):
-            if isinstance(field, dict):
-                return field.get("value", "N/A"), field.get("justification")
-            return field or "N/A", None
-        
-        # ✅ Only display summary if it exists
-        if summary:
-            try:
-                budget_val, budget_just = parse_variance_field(summary.get("budget_variance"))
-                sched_val, sched_just = parse_variance_field(summary.get("schedule_variance"))
-                score_val, score_just = parse_variance_field(summary.get("risk_score"))
-            except Exception:
-                budget_val, budget_just = "N/A", None
-                sched_val, sched_just = "N/A", None
-                score_val, score_just = "0", None
-        
-            with st.container():
-                st.markdown("## 📊 Risk Summary")
-                st.markdown("Quick overview of the identified risks and key project metrics.")
-                summary_cols = st.columns([1, 1, 1])
-                summary_cols[0].metric("🟥 High Risks", risk_counts.get("high", 0))
-                summary_cols[1].metric("🟧 Medium Risks", risk_counts.get("medium", 0))
-                summary_cols[2].metric("🟩 Low Risks", risk_counts.get("low", 0))
-        
-                st.markdown("#### 📈 Variance Summary")
-                var_cols = st.columns([1, 1, 2])
-        
-                var_cols[0].markdown(f"**📘 Budget Variance:** `{budget_val}`")
-                if budget_just:
-                    with var_cols[0].expander("Why this budget variance?"):
-                        st.markdown(budget_just)
-        
-                var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{sched_val}`")
-                if sched_just:
-                    with var_cols[1].expander("Why this schedule variance?"):
-                        st.markdown(sched_just)
-        
-                with var_cols[2]:
-                    if score_val != "N/A":
-                        st.progress(int(score_val) / 100)
-                        st.markdown(f"🎯 **Risk Score:** {score_val}/100")
-                        if score_just:
-                            with st.expander("Why this score?"):
-                                st.markdown(score_just)
-        else:
-            st.warning("⚠️ No summary data was returned by the model. Skipping risk summary section.")
+        risks = result_data.get("risks", [])
+        # Group and count risks
 
-
-        
-        # Handle legacy format if model didn't return dicts
-        if not isinstance(budget, dict): budget = {"value": budget, "justification": None}
-        if not isinstance(sched, dict): sched = {"value": sched, "justification": None}
-        if not isinstance(score, dict): score = {"value": score, "justification": None}
-        
-        # Create side-by-side layout
+    grouped_risks = defaultdict(list)
+    for risk in risks:
+        grouped_risks[risk['severity'].lower()].append(risk)
+    risk_counts = Counter(risk['severity'].lower() for risk in risks)
+    
+    # 📊 Risk Summary Panel
+    with st.container():
+        st.markdown("## 📊 Risk Summary")
+        st.markdown("Quick overview of the identified risks and key project metrics.")
+    
+        summary_cols = st.columns([1, 1, 1])
+        summary_cols[0].metric("🟥 High Risks", risk_counts.get("high", 0))
+        summary_cols[1].metric("🟧 Medium Risks", risk_counts.get("medium", 0))
+        summary_cols[2].metric("🟩 Low Risks", risk_counts.get("low", 0))
+    
+        st.markdown("#### 📈 Variance Summary")
         var_cols = st.columns([1, 1, 2])
-        
-        # 📘 Budget Variance
-        var_cols[0].markdown(f"**📘 Budget Variance:** `{budget.get('value', 'N/A')}`")
-        if budget.get("justification"):
-            with var_cols[0].expander("Why this budget variance?"):
-                st.markdown(budget["justification"])
-        
-        # ⏱️ Schedule Variance
-        var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{sched.get('value', 'N/A')}`")
-        if sched.get("justification"):
-            with var_cols[1].expander("Why this schedule variance?"):
-                st.markdown(sched["justification"])
-        
-        # 🎯 Risk Score
+        var_cols[0].markdown(f"**📘 Budget Variance:** `{summary.get('budget_variance', 'N/A')}`")
+        var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
         with var_cols[2]:
-            if score.get("value") is not None:
-                st.progress(int(score["value"]) / 100)
-                st.markdown(f"🎯 **Risk Score:** {score['value']}/100")
-                if score.get("justification"):
-                    with st.expander("Why this score?"):
-                        st.markdown(score["justification"])
-
-    # 🧼 Safe fallback in case of empty or invalid model output
-    if "grouped_risks" not in locals():
-        grouped_risks = defaultdict(list)
-
+            if summary.get("risk_score") is not None:
+                st.progress(int(summary["risk_score"]) / 100)
+                st.markdown(f"🎯 **Risk Score:** {summary['risk_score']}/100")
+    
     st.markdown("---")
     
     # === 📋 Risk Explorer Tabs ===
     st.markdown("## 📋 Risk Explorer")
-    if "grouped_risks" not in locals(): grouped_risks = defaultdict(list)
     tabs = st.tabs([
         f"🟥 High Risks ({len(grouped_risks['high'])})",
         f"🟧 Medium Risks ({len(grouped_risks['medium'])})",
@@ -614,4 +535,3 @@ if "risk_result" in st.session_state:
         st.error("⚠️ The model did not return a valid JSON. Check the prompt or document inputs.")
         st.markdown("### 🧾 Raw Output")
         st.code(result_data if isinstance(result_data, str) else str(result_data))
-
