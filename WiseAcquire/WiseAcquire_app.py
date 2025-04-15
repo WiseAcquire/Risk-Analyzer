@@ -527,10 +527,10 @@ if "risk_result" in st.session_state:
         if summary.get("risk_score") is not None:
             st.progress(summary["risk_score"] / 100)
             st.markdown(f"🎯 **Overall Risk Level:** {summary['risk_score']}/100")
-        with st.expander("🧠 Risk Score Calculation Breakdown"):
-            st.markdown(f"- Total Weighted Score: `{total_score:.2f}`")
-            st.markdown(f"- Max Possible Score: `{max_score}`")
-            st.markdown(f"- Final Risk Score: `{risk_score_calc}` out of 100")
+    with st.expander("🧠 Risk Score Calculation Breakdown"):
+        st.markdown(f"- Total Weighted Score: `{total_score:.2f}`")
+        st.markdown(f"- Max Possible Score: `{max_score}`")
+        st.markdown(f"- Final Risk Score: `{risk_score_calc}` out of 100")
 
 
     with st.expander("ℹ️ How are these metrics calculated?", expanded=False):
