@@ -457,6 +457,23 @@ if "risk_result" in st.session_state:
     else:
         summary = result_data.get("summary", {})
         risks = result_data.get("risks", [])
+        # ✅ Recalculate Risk Score from severity + confidence
+        weights = {"high": 3, "medium": 2, "low": 1}
+        total_score = 0
+        max_possible_score = 0
+        
+        for risk in risks:
+            severity = risk["severity"].lower()
+            confidence = risk.get("confidence", 100)  # Use 100 if not provided
+            weight = weights.get(severity, 0)
+        
+            total_score += weight * (confidence / 100)
+            max_possible_score += 3  # Highest possible weight is 3 (for high)
+        
+        # Normalize to 0–100 range
+        risk_score_calc = int((total_score / max_possible_score) * 100) if max_possible_score > 0 else 0
+        summary["risk_score"] = risk_score_calc
+
         # Group and count risks
 
     grouped_risks = defaultdict(list)
@@ -502,8 +519,9 @@ if "risk_result" in st.session_state:
     var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
     with var_cols[2]:
         if summary.get("risk_score") is not None:
-            st.progress(int(summary["risk_score"]) / 100)
-            st.markdown(f"🎯 **Risk Score:** {summary['risk_score']}/100")
+            st.progress(summary["risk_score"] / 100)
+            st.markdown(f"🎯 **Overall Risk Level:** {summary['risk_score']}/100")
+
     with st.expander("ℹ️ How are these metrics calculated?", expanded=False):
         st.markdown("""
         - **📘 Budget Variance** is calculated by comparing the projected and actual costs found in the uploaded documents.
