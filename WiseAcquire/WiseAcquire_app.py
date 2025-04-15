@@ -488,21 +488,21 @@ if "risk_result" in st.session_state:
             st.markdown(f"### {risk_counts.get('high', 0)}")
             if st.button("View High Risks", key="go_high"):
                 st.session_state["jump_to"] = "high"
-                st.experimental_rerun()
+                st.rerun()
         
         with col2:
             st.markdown("**🟧 Medium Risks**")
             st.markdown(f"### {risk_counts.get('medium', 0)}")
             if st.button("View Medium Risks", key="go_medium"):
                 st.session_state["jump_to"] = "medium"
-                st.experimental_rerun()
+                st.rerun()
         
         with col3:
             st.markdown("**🟩 Low Risks**")
             st.markdown(f"### {risk_counts.get('low', 0)}")
             if st.button("View Low Risks", key="go_low"):
                 st.session_state["jump_to"] = "low"
-                st.experimental_rerun()
+                st.rerun()
 
     
         st.markdown(f"📈 **Budget Variance:** {summary.get('budget_variance', 'N/A')}")
