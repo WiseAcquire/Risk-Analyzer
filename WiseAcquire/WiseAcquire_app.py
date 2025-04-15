@@ -601,38 +601,27 @@ if "risk_result" in st.session_state:
                 cleaned["actual_duration"] = cleaned["actual_end"] - cleaned["actual_start"]
     
                 fig = go.Figure()
-    
+
                 # Planned
                 fig.add_trace(go.Bar(
                     y=cleaned["task"],
-                    x=cleaned["planned_duration"].dt.days,
-                    base=cleaned["planned_start"],
+                    x=cleaned["planned_end"],
+                    x0=cleaned["planned_start"],
                     orientation='h',
                     name='Planned',
-                    marker_color='lightgray',
-                    hovertemplate='Planned: %{base|%Y-%m-%d} → %{x|%Y-%m-%d}<extra></extra>'
+                    marker_color='lightgray'
                 ))
-    
+                
                 # Actual
                 fig.add_trace(go.Bar(
                     y=cleaned["task"],
-                    x=cleaned["actual_duration"].dt.days,
-                    base=cleaned["actual_start"],
+                    x=cleaned["actual_end"],
+                    x0=cleaned["actual_start"],
                     orientation='h',
                     name='Actual',
-                    marker_color='steelblue',
-                    hovertemplate='Actual: %{base|%Y-%m-%d} → %{x|%Y-%m-%d}<extra></extra>'
+                    marker_color='steelblue'
                 ))
-    
-                fig.update_layout(
-                    title="📅 Project Timeline: Planned vs. Actual",
-                    barmode='overlay',
-                    xaxis_title="Date",
-                    yaxis_title="Project Phase",
-                    xaxis=dict(type='date'),
-                    height=450,
-                    showlegend=True
-                )
+
     
                 st.plotly_chart(fig, use_container_width=True)
 
