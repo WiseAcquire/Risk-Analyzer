@@ -455,7 +455,12 @@ def extract_risk_summary(text):
 
 # === Render Analysis Results If Present ===
 if "risk_result" in st.session_state:
-    result_data, raw_output = st.session_state.get("risk_result", ({}, ""))
+    risk_result = st.session_state.get("risk_result", ({}, ""))
+    if isinstance(risk_result, tuple) and len(risk_result) == 2:
+        result_data, raw_output = risk_result
+    else:
+        result_data, raw_output = {}, ""
+
 
     if not isinstance(result_data, dict) or "risks" not in result_data or not isinstance(raw_output, str):
         st.error("⚠️ The model did not return a structured JSON output. Please try again or check the LLM output formatting.")
