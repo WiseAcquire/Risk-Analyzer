@@ -474,24 +474,7 @@ if "risk_result" in st.session_state:
         st.metric("🟧 Medium Risks", risk_counts.get("medium", 0))
     with col3:
         st.metric("🟩 Low Risks", risk_counts.get("low", 0))
-    
-    st.markdown(f"📈 **Budget Variance:** {summary.get('budget_variance', 'N/A')}")
-    with st.expander("📘 What is this?", expanded=False):
-        st.markdown("This is the difference between estimated and actual costs found in your procurement document.")
-    
-    st.markdown(f"🕒 **Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
-    with st.expander("📘 What is this?", expanded=False):
-        st.markdown("Based on difference between planned and actual milestone dates.")
-    
-    if summary.get("risk_score") is not None:
-        st.progress(int(summary["risk_score"]) / 100)
-        st.markdown(f"🎯 **Risk Score:** {summary.get('risk_score', 'N/A')}/100")
-        with st.expander("📘 What is this?", expanded=False):
-            st.markdown("Weighted based on the number, severity, and confidence of the detected risks.")
-    
-    # 📋 Risk Explorer Panel with Tabs
-    st.markdown("### 📋 Risk Explorer Panel")
-    
+     
     tabs = st.tabs([
         f"🟥 High Risks ({len(grouped_risks['high'])})",
         f"🟧 Medium Risks ({len(grouped_risks['medium'])})",
@@ -511,8 +494,22 @@ if "risk_result" in st.session_state:
                         💡 <i>Why this category?</i> Based on: <b>{risk['key_data']}</b></div>""",
                         unsafe_allow_html=True
                     )
+    
+    st.markdown(f"📈 **Budget Variance:** {summary.get('budget_variance', 'N/A')}")
+    with st.expander("📘 What is this?", expanded=False):
+        st.markdown("This is the difference between estimated and actual costs found in your procurement document.")
+    
+    st.markdown(f"🕒 **Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
+    with st.expander("📘 What is this?", expanded=False):
+        st.markdown("Based on difference between planned and actual milestone dates.")
+    
+    if summary.get("risk_score") is not None:
+        st.progress(int(summary["risk_score"]) / 100)
+        st.markdown(f"🎯 **Risk Score:** {summary.get('risk_score', 'N/A')}/100")
+        with st.expander("📘 What is this?", expanded=False):
+            st.markdown("Weighted based on the number, severity, and confidence of the detected risks.")
+    
 
-        # Extract timeline safely
         # Extract timeline safely
         timeline_data = pd.DataFrame(result_data.get("timeline", []))
         
