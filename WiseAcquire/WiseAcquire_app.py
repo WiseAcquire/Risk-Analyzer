@@ -261,7 +261,7 @@ class RAGProcurementRisksAnalysis:
             except json.JSONDecodeError as e:
                 st.warning("⚠️ Model response was not valid JSON. Showing raw response instead.")
                 print("⚠️ JSONDecodeError:", e)
-                print("🧾 Raw cleaned output:\n", response_text[:1000])
+                print("🧾 Raw timeline_data output:\n", response_text[:1000])
                 st.session_state["raw_response_text"] = response_text
                 return {
                     "summary": {},
@@ -579,12 +579,12 @@ if "risk_result" in st.session_state:
 
     import plotly.express as px
     
-    if not cleaned.empty:
+    if not timeline_data.empty:
         st.markdown("## ⏱️ Project Timeline")
         with st.expander("📅 View Timeline Chart", expanded=False):
     
             fig = px.timeline(
-                cleaned,
+                timeline_data,
                 x_start="planned_start",
                 x_end="planned_end",
                 y="task",
@@ -592,7 +592,7 @@ if "risk_result" in st.session_state:
                 labels={"task": "Project Phase"},
             )
             fig.add_traces(px.timeline(
-                cleaned,
+                timeline_data,
                 x_start="actual_start",
                 x_end="actual_end",
                 y="task",
