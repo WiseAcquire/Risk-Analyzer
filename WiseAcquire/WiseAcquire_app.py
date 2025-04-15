@@ -496,7 +496,7 @@ if "risk_result" in st.session_state:
 
     st.markdown("---")
       
-        st.markdown("### 📈 Variance Summary")
+    st.markdown("### 📈 Variance Summary")
         var_cols = st.columns([1, 1, 2])
         var_cols[0].markdown(f"**📘 Budget Variance:** `{summary.get('budget_variance', 'N/A')}`")
         var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
@@ -514,7 +514,6 @@ if "risk_result" in st.session_state:
     st.markdown("---")
     
 
-    
     # === ⏱️ Timeline Section ===
     timeline_data = pd.DataFrame(result_data.get("timeline", []))
     if not timeline_data.empty:
