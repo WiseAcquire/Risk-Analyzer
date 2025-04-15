@@ -514,13 +514,6 @@ if "risk_result" in st.session_state:
 
         # Extract timeline safely
         timeline_data = pd.DataFrame(result_data.get("timeline", []))
-
-    
-        if not timeline_data.empty:
-            st.markdown("### ⏱️ Timeline View")
-            import plotly.express as px
-            fig = px.timeline(timeline_data, x_start="start", x_end="end", y="task", color="risk")
-            st.plotly_chart(fig, use_container_width=True)
     
 
 
