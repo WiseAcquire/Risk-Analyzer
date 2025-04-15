@@ -561,7 +561,7 @@ if "risk_result" in st.session_state:
         # Risk Score Breakdown
         with st.expander("🧠 Risk Score Calculation Breakdown"):
             st.markdown(f"- **Total Weighted Score:** `{total_score:.2f}`")
-            st.markdown(f"- **Max Possible Score:** `{max_score}`")
+            st.markdown(f"- **Max Possible Score:** `{max_possible_score}`")
             st.markdown(f"- **Final Risk Score:** `{risk_score_calc}` out of 100")
 
     
