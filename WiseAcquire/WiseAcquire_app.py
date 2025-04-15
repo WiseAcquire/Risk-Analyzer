@@ -465,22 +465,33 @@ if "risk_result" in st.session_state:
     risk_counts = Counter(risk['severity'].lower() for risk in risks)
     
     # 📊 Risk Summary Panel
-    st.markdown("### 📊 Risk Summary Panel")
+    with st.container():
+        st.markdown("## 📊 Risk Summary")
+        st.markdown("Quick overview of the identified risks and key project metrics.")
     
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("🟥 High Risks", risk_counts.get("high", 0))
-    with col2:
-        st.metric("🟧 Medium Risks", risk_counts.get("medium", 0))
-    with col3:
-        st.metric("🟩 Low Risks", risk_counts.get("low", 0))
-     
+        summary_cols = st.columns([1, 1, 1])
+        summary_cols[0].metric("🟥 High Risks", risk_counts.get("high", 0))
+        summary_cols[1].metric("🟧 Medium Risks", risk_counts.get("medium", 0))
+        summary_cols[2].metric("🟩 Low Risks", risk_counts.get("low", 0))
+    
+        st.markdown("#### 📈 Variance Summary")
+        var_cols = st.columns([1, 1, 2])
+        var_cols[0].markdown(f"**📘 Budget Variance:** `{summary.get('budget_variance', 'N/A')}`")
+        var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{summary.get('schedule_variance', 'N/A')}`")
+        with var_cols[2]:
+            if summary.get("risk_score") is not None:
+                st.progress(int(summary["risk_score"]) / 100)
+                st.markdown(f"🎯 **Risk Score:** {summary['risk_score']}/100")
+    
+    st.markdown("---")
+    
+    # === 📋 Risk Explorer Tabs ===
+    st.markdown("## 📋 Risk Explorer")
     tabs = st.tabs([
         f"🟥 High Risks ({len(grouped_risks['high'])})",
         f"🟧 Medium Risks ({len(grouped_risks['medium'])})",
         f"🟩 Low Risks ({len(grouped_risks['low'])})"
     ])
-    
     for i, severity in enumerate(["high", "medium", "low"]):
         with tabs[i]:
             if not grouped_risks[severity]:
@@ -490,37 +501,21 @@ if "risk_result" in st.session_state:
                     st.markdown(f"**Key Insight:** {risk['key_data']}")
                     st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
                     st.markdown(
-                        f"""<div title="The model categorized this as {risk['severity']} based on indicators like: {risk['key_data']}">
-                        💡 <i>Why this category?</i> Based on: <b>{risk['key_data']}</b></div>""",
+                        f"""<div title="Why this category?">{risk['severity']} based on: <b>{risk['key_data']}</b></div>""",
                         unsafe_allow_html=True
                     )
     
-    st.markdown(f"📈 **Budget Variance:** {summary.get('budget_variance', 'N/A')}")
-    with st.expander("📘 What is this?", expanded=False):
-        st.markdown("This is the difference between estimated and actual costs found in your procurement document.")
+    st.markdown("---")
     
-    st.markdown(f"🕒 **Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
-    with st.expander("📘 What is this?", expanded=False):
-        st.markdown("Based on difference between planned and actual milestone dates.")
-    
-    if summary.get("risk_score") is not None:
-        st.progress(int(summary["risk_score"]) / 100)
-        st.markdown(f"🎯 **Risk Score:** {summary.get('risk_score', 'N/A')}/100")
-        with st.expander("📘 What is this?", expanded=False):
-            st.markdown("Weighted based on the number, severity, and confidence of the detected risks.")
-    
-
-        # Extract timeline safely
-        timeline_data = pd.DataFrame(result_data.get("timeline", []))
-        
-        # Only render if there is timeline data
-        if not timeline_data.empty:
-            st.markdown("### ⏱️ Timeline View")
-            with st.expander("View Project Timeline"):
-                import plotly.express as px
-                fig = px.timeline(timeline_data, x_start="start", x_end="end", y="task", color="risk")
-                fig.update_yaxes(autorange="reversed")  # Tasks from top to bottom
-                st.plotly_chart(fig, use_container_width=True)
+    # === ⏱️ Timeline Section ===
+    timeline_data = pd.DataFrame(result_data.get("timeline", []))
+    if not timeline_data.empty:
+        st.markdown("## ⏱️ Project Timeline")
+        with st.expander("📅 View Timeline Chart", expanded=False):
+            import plotly.express as px
+            fig = px.timeline(timeline_data, x_start="start", x_end="end", y="task", color="risk")
+            fig.update_yaxes(autorange="reversed")
+            st.plotly_chart(fig, use_container_width=True)
 
 
     st.markdown("### 📤 Export & Share")
