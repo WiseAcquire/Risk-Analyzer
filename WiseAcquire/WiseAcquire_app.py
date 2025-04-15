@@ -522,7 +522,7 @@ if "risk_result" in st.session_state:
             
         if grouped_risks:
             st.markdown("### 📋 Risk Explorer Panel")
-        
+        jump = st.session_state.get("jump_to")
         
         # Prioritize and render selected severity group first
         if jump in ["high", "medium", "low"]:
@@ -568,7 +568,7 @@ if "risk_result" in st.session_state:
     st.download_button("📄 Download as TXT", export_text, file_name="risk_analysis.txt")
     st.download_button("💾 Export as JSON", export_text, file_name="risk_analysis.json")
     st.session_state["jump_to"] = None
-    jump = st.session_state.get("jump_to")
+    
 
     
     # Fallback UI to debug raw output            
