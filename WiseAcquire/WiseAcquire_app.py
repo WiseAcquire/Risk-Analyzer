@@ -483,10 +483,16 @@ if "risk_result" in st.session_state:
             if isinstance(field, dict):
                 return field.get("value", "N/A"), field.get("justification")
             return field or "N/A", None
-
+        
         budget_val, budget_just = parse_variance_field(summary.get("budget_variance"))
         sched_val, sched_just = parse_variance_field(summary.get("schedule_variance"))
         score_val, score_just = parse_variance_field(summary.get("risk_score"))
+        
+        risks = result_data.get("risks", [])
+        grouped_risks = defaultdict(list)
+        for risk in risks:
+            grouped_risks[risk['severity'].lower()].append(risk)
+        risk_counts = Counter(risk['severity'].lower() for risk in risks)
 
         if isinstance(result_data, dict) and "risks" in result_data:
             risks = result_data.get("risks", [])
