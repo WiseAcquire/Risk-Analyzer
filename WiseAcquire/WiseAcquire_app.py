@@ -457,108 +457,61 @@ if "risk_result" in st.session_state:
     else:
         summary = result_data.get("summary", {})
         risks = result_data.get("risks", [])
-        grouped_risks = defaultdict(list)
-        for risk in risks:
-            grouped_risks[risk['severity'].lower()].append(risk)
-
-        timeline_data = pd.DataFrame(result_data.get("timeline", []))
-    
-        st.success("✅ Analysis complete!")
-        with st.expander("ℹ️ Disclaimer: How the Model Calculates Risk Summary"):
-            st.markdown("""
-            - **Budget Variance**: Derived from language about estimated vs. actual cost figures.
-            - **Schedule Variance**: Extracted from milestone or timeline language (e.g., "planned vs actual").
-            - **Risk Score**: Calculated as a weighted count of all risks based on severity and confidence levels.
-            - **Risk Categories**: The model classifies risks using LLM-based interpretation of key terms (e.g., 'delays', 'overruns', 'scope creep').
-            - **Re-run variation**: Minor differences in phrasing, formatting, or retrieved docs may lead to different outputs.
-            """)
-        st.markdown("### 📊 Risk Summary Panel")
-    
         # Group and count risks
-        grouped_risks = defaultdict(list)
-        for risk in risks:
-            grouped_risks[risk['severity'].lower()].append(risk)
-        risk_counts = Counter(risk['severity'].lower() for risk in risks)
-        
-        # Create columns for summary panel
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.markdown("**🟥 High Risks**")
-            st.markdown(f"### {risk_counts.get('high', 0)}")
-            if st.button("View High Risks", key="go_high"):
-                st.session_state["jump_to"] = "high"
-                st.rerun()
-        
-        with col2:
-            st.markdown("**🟧 Medium Risks**")
-            st.markdown(f"### {risk_counts.get('medium', 0)}")
-            if st.button("View Medium Risks", key="go_medium"):
-                st.session_state["jump_to"] = "medium"
-                st.rerun()
-        
-        with col3:
-            st.markdown("**🟩 Low Risks**")
-            st.markdown(f"### {risk_counts.get('low', 0)}")
-            if st.button("View Low Risks", key="go_low"):
-                st.session_state["jump_to"] = "low"
-                st.rerun()
 
+    grouped_risks = defaultdict(list)
+    for risk in risks:
+        grouped_risks[risk['severity'].lower()].append(risk)
+    risk_counts = Counter(risk['severity'].lower() for risk in risks)
     
-        st.markdown(f"📈 **Budget Variance:** {summary.get('budget_variance', 'N/A')}")
-        with st.expander("📘 What is this?"):
-            st.markdown("This is the difference between estimated and actual costs found in your procurement document.")
-
-        st.markdown(f"🕒 **Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
-        with st.expander("📘 What is this?"):
-            st.markdown("Based on difference between planned and actual milestone dates.")
-
-        if summary.get("risk_score") is not None:
-            st.progress(int(summary["risk_score"]) / 100)
-            st.markdown(f"🎯 **Risk Score:** {summary.get('risk_score', 'N/A')}/100")
-            with st.expander("📘 What is this?"):
-                st.markdown("Weighted based on the number, severity, and confidence of the detected risks.")
-            
-            
-        if grouped_risks:
-            st.markdown("### 📋 Risk Explorer Panel")
-        
-        jump = st.session_state.get("jump_to")
-        prioritized = []
-        
-        if jump in ["high", "medium", "low"]:
-            st.markdown(f"### 🎯 Focused View: {jump.capitalize()} Risks")
-            prioritized = grouped_risks[jump]
-            for risk in prioritized:
-                with st.expander(f"📌 {risk['type']} — {jump.capitalize()} Risk ({risk['confidence']}%)", expanded=True):
+    # 📊 Risk Summary Panel
+    st.markdown("### 📊 Risk Summary Panel")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("🟥 High Risks", risk_counts.get("high", 0))
+    with col2:
+        st.metric("🟧 Medium Risks", risk_counts.get("medium", 0))
+    with col3:
+        st.metric("🟩 Low Risks", risk_counts.get("low", 0))
+    
+    st.markdown(f"📈 **Budget Variance:** {summary.get('budget_variance', 'N/A')}")
+    with st.expander("📘 What is this?", expanded=False):
+        st.markdown("This is the difference between estimated and actual costs found in your procurement document.")
+    
+    st.markdown(f"🕒 **Schedule Variance:** {summary.get('schedule_variance', 'N/A')}")
+    with st.expander("📘 What is this?", expanded=False):
+        st.markdown("Based on difference between planned and actual milestone dates.")
+    
+    if summary.get("risk_score") is not None:
+        st.progress(int(summary["risk_score"]) / 100)
+        st.markdown(f"🎯 **Risk Score:** {summary.get('risk_score', 'N/A')}/100")
+        with st.expander("📘 What is this?", expanded=False):
+            st.markdown("Weighted based on the number, severity, and confidence of the detected risks.")
+    
+    # 📋 Risk Explorer Panel with Tabs
+    st.markdown("### 📋 Risk Explorer Panel")
+    
+    tabs = st.tabs([
+        f"🟥 High Risks ({len(grouped_risks['high'])})",
+        f"🟧 Medium Risks ({len(grouped_risks['medium'])})",
+        f"🟩 Low Risks ({len(grouped_risks['low'])})"
+    ])
+    
+    for i, severity in enumerate(["high", "medium", "low"]):
+        with tabs[i]:
+            if not grouped_risks[severity]:
+                st.info("No risks found in this category.")
+            for risk in grouped_risks[severity]:
+                with st.expander(f"{risk['type']} — {severity.capitalize()} Risk ({risk['confidence']}%)", expanded=False):
                     st.markdown(f"**Key Insight:** {risk['key_data']}")
                     st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
                     st.markdown(
-                        f"""<div title="The model categorized this as {risk['severity']} based on key indicators like: {risk['key_data']}">
-                        💡 <i>Why this category?</i> Risk severity was inferred from content like: <b>{risk['key_data']}</b></div>""",
+                        f"""<div title="The model categorized this as {risk['severity']} based on indicators like: {risk['key_data']}">
+                        💡 <i>Why this category?</i> Based on: <b>{risk['key_data']}</b></div>""",
                         unsafe_allow_html=True
                     )
-                    st.markdown(
-                        f"""<div style="color: #ff4b4b;"><b>Highlighted due to user selection</b></div>""",
-                        unsafe_allow_html=True,
-                    )
-        
-        # Then render the rest (if not already shown)
-        for severity, label in [("high", "🟥 High Risks"), ("medium", "🟧 Medium Risks"), ("low", "🟩 Low Risks")]:
-            if severity == jump:
-                continue
-            st.markdown(f"#### {label}")
-            for risk in grouped_risks[severity]:
-                with st.expander(f"{risk['type']} — {severity.capitalize()} Risk ({risk['confidence']}%)"):
-                    st.markdown(f"**Key Insight:** {risk['key_data']}")
-                    st.markdown(f"**Mitigation Plan:** {risk['mitigation']}")
 
-
-       
-
-        
-        # Reset jump key so next render doesn't keep prioritizing the section
-        st.session_state["jump_to"] = None
 
     
         if not timeline_data.empty:
