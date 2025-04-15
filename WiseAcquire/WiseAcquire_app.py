@@ -465,6 +465,15 @@ if "risk_result" in st.session_state:
         st.code(result_data if isinstance(result_data, str) else str(result_data))
     else:
         summary = result_data.get("summary", {})
+        def parse_variance_field(field):
+            if isinstance(field, dict):
+                return field.get("value", "N/A"), field.get("justification")
+            return field or "N/A", None
+
+        budget_val, budget_just = parse_variance_field(summary.get("budget_variance"))
+        sched_val, sched_just = parse_variance_field(summary.get("schedule_variance"))
+        score_val, score_just = parse_variance_field(summary.get("risk_score"))
+
         risks = result_data.get("risks", [])
         # Group and count risks
 
@@ -485,9 +494,29 @@ if "risk_result" in st.session_state:
     
         st.markdown("#### 📈 Variance Summary")
         # Safely extract and format each metric
-        budget = summary.get("budget_variance", {})
-        sched = summary.get("schedule_variance", {})
-        score = summary.get("risk_score", {})
+        var_cols = st.columns([1, 1, 2])
+        
+        # Budget
+        var_cols[0].markdown(f"**📘 Budget Variance:** `{budget_val}`")
+        if budget_just:
+            with var_cols[0].expander("Why this budget variance?"):
+                st.markdown(budget_just)
+        
+        # Schedule
+        var_cols[1].markdown(f"**⏱️ Schedule Variance:** `{sched_val}`")
+        if sched_just:
+            with var_cols[1].expander("Why this schedule variance?"):
+                st.markdown(sched_just)
+        
+        # Risk Score
+        with var_cols[2]:
+            if score_val != "N/A":
+                st.progress(int(score_val) / 100)
+                st.markdown(f"🎯 **Risk Score:** {score_val}/100")
+                if score_just:
+                    with st.expander("Why this score?"):
+                        st.markdown(score_just)
+
         
         # Handle legacy format if model didn't return dicts
         if not isinstance(budget, dict): budget = {"value": budget, "justification": None}
