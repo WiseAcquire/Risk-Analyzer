@@ -626,6 +626,7 @@ if "risk_result" in st.session_state:
             - 🚨 Risk Impact: {row.get('risk', 'None')}
             """)
 
+    st.markdown("---")
 
     st.markdown("### 📤 Export & Share")
     if isinstance(result_data, dict):
@@ -633,7 +634,6 @@ if "risk_result" in st.session_state:
     else:
         export_text = str(result_data)
 
-    st.markdown("---")
     
     st.download_button("📄 Download as TXT", export_text, file_name="risk_analysis.txt")
     st.download_button("💾 Export as JSON", export_text, file_name="risk_analysis.json")
