@@ -569,6 +569,14 @@ if "risk_result" in st.session_state:
     
     # === ⏱️ Timeline Section ===
     timeline_data = pd.DataFrame(result_data.get("timeline", []))
+    # Convert string dates to datetime
+    for col in ["planned_start", "planned_end", "actual_start", "actual_end"]:
+        if col in timeline_data.columns:
+            timeline_data[col] = pd.to_datetime(timeline_data[col], errors="coerce")
+    
+    if timeline_data[["planned_start", "actual_start"]].isnull().any().any():
+        st.warning("⚠️ Some date values could not be parsed. Check your timeline data for missing or invalid dates.")
+
     if not timeline_data.empty:
         st.markdown("## ⏱️ Project Timeline")
         with st.expander("📅 View Timeline Chart", expanded=False):
@@ -598,12 +606,13 @@ if "risk_result" in st.session_state:
             
             fig.update_layout(
                 title="📅 Project Timeline: Planned vs. Actual",
-                barmode='overlay',
+                barmode='group',  # <-- was 'overlay'
                 xaxis_title="Date",
                 yaxis_title="Task",
                 showlegend=True,
                 height=400
             )
+
             
             st.plotly_chart(fig, use_container_width=True)
 
