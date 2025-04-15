@@ -462,23 +462,27 @@ if "risk_result" in st.session_state:
         summary = result_data.get("summary", {})
         risks = result_data.get("risks", [])
         
-
-        # ✅ Revised: Weighted severity + partial confidence penalty
-        weights = {"high": 10, "medium": 5, "low": 1}
+        # ✅ Improved Risk Score Calculation
+        weights = {"high": 10, "medium": 5, "low": 2}
         total_weighted_score = 0
         max_possible_score = 0
         
         for risk in risks:
             severity = risk["severity"].lower()
             confidence = risk.get("confidence", 100)
-        
             weight = weights.get(severity, 0)
-            total_weighted_score += weight * (confidence / 100)  # Confidence-scaled impact
-            max_possible_score += weight                         # Full severity impact
         
-        # Final normalized score
-        risk_score_calc = int((total_weighted_score / max_possible_score) * 100) if max_possible_score else 0
-        summary["risk_score"] = risk_score_calc
+            # Score is weighted severity × scaled confidence
+            contribution = weight * (confidence / 100)
+            total_weighted_score += contribution
+            max_possible_score += weight
+        
+        # Optional: amplify score slightly if risk volume is high
+        scaling_factor = min(1.2, 1 + len(risks) * 0.02)
+        
+        # Normalize to 0–100
+        risk_score_calc = int((total_weighted_score / max_possible_score) * 100 * scaling_factor) if max_possible_score else 0
+        summary["risk_score"] = min(risk_score_calc, 100)
 
 
         
